@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lloyd Scharfenstine</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+  
+
+  <div class="background-image">
+
+    <div id="profile" class="profile">
+        <p>this is the profile page</p>
+    </div>
+    <div id="projects" class="projects">
+        <p>this is the projects page</p>
+    </div>
+    <div id="timeline" class="timeline">
+        <p>this is the timeline page</p>
+    </div>
+    <div id="notes" class="notes">
+        <p>this is the notes page</p>
+    </div>
+    <div id="resume" class="resume">
+        <p>this is the resume page</p>
+    </div>
+    <div id="contact" class="contact">
+        <p>this is the contact page</p>
+    </div>
+
+
+    <div class="outer-headings">
+        <h1>
+            I am, 
+            <div class="inner-headings">
+                <span>
+                    a CAD Designer <br />
+                    an App Developer <br />
+                    a Web Developer <br />
+                    an Engineer <br />
+                </span>
+        </h1>
+      </div>
+  </div>
+
+
+
+  <div class="sidenav">
+    <button id="homeButton"><img src="icons/008-home-1.png" width="56" height="56"></button>
+    <button id="profileButton"><img id="profileIcon" src="icons/009-businessman-1.png" width="48" height="48"></button>
+    <button id="projectsButton"><img id="projectsIcon" src="icons/blueprint.png" width="48" height="48"></button>
+    <button id="timelineButton"><img id="timelineIcon" src="icons/011-timeline-1.png" width="48" height="48"></button>
+    <button id="notesButton"><img id="notesIcon" src="icons/015-notes-3.png" width="48" height="48"></button>
+    <button id="resumeButton"><img id="resumeIcon" src="icons/014-curriculum-vitae-2.png" width="48" height="48"></button>
+    <button id="contactButton"><img id="contactIcon" src="icons/013-contact-1.png" width="48" height="48"></button>
+  </div>
+
+  <script src="script.js"></script>
+  
+  <script>
+    function toggleIcon(buttonId, iconId, originalSrc, newSrc) {
+      const button = document.getElementById(buttonId);
+      const icon = document.getElementById(iconId);
+
+      let isChanged = false;
+
+      button.addEventListener('click', function () {
+        if (!isChanged) {
+          icon.src = newSrc;
+          isChanged = true;
+        } else {
+          icon.src = originalSrc;
+          isChanged = false;
+        }
+      });
+    }
+
+
+    toggleIcon('profileButton', 'profileIcon', 'icons/009-businessman-1.png', 'icons/new-profile-icon.png');
+    toggleIcon('projectsButton', 'projectsIcon', 'icons/blueprint.png', 'icons/new-profile-icon.png');
+    toggleIcon('timelineButton', 'timelineIcon', 'icons/011-timeline-1.png', 'icons/new-profile-icon.png');
+    toggleIcon('notesButton', 'notesIcon', 'icons/015-notes-3.png', 'icons/new-profile-icon.png');
+    toggleIcon('resumeButton', 'resumeIcon', 'icons/014-curriculum-vitae-2.png', 'icons/new-profile-icon.png');
+    toggleIcon('contactButton', 'contactIcon', 'icons/013-contact-1.png', 'icons/new-profile-icon.png');
+   
+  </script>
+</body>
+</html>
+
+
+
+

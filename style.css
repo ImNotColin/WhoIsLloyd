@@ -1,0 +1,204 @@
+/* Reset default margin and padding */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+
+*{
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+
+body, html {
+    margin: 0;
+    padding: 0;
+  }
+
+
+  
+  /* Apply background image to a specific div */
+  .background-image {
+    /* Replace 'images/background-image.jpg' with the correct path to your image */
+    background-image: url('images/background.jpg');
+    /* Set background properties */
+    background-size: cover;
+    background-position: center;
+    /* Set dimensions to fill the viewport */
+    width: 100vw;
+    height: 100vh;
+    /* Center content vertically and horizontally */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Add some styles for readability */
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+  }
+
+  .sidenav {
+    height: 100%;
+    width: 200px; /* Adjust as needed */
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #191a1b;
+    padding-top: 145px;
+    opacity: 0.6;
+    overflow: hidden;
+  }
+
+/* Style the links inside the navigation bar */
+.sidenav button{
+    background-color: transparent;
+    border-radius: 60px;
+    border: 0px
+}
+.sidenav a, .sidenav button {
+    position: relative;
+    padding: 25px 70px;
+    text-decoration: none;
+    font-size: 30px;
+    color: white;
+    display: block;
+    opacity: 1;
+
+  }
+  
+  /* Change the link color on hover */
+  .sidenav a, .sidenav button:hover {
+    background-color: #020202;
+    border-radius: 60px;
+    transform: scale(1.05);
+  }
+  
+  /* Style the main content */
+  .main {
+    margin-left: 250px; /* Same as the width of the side navigation bar */
+    padding: 20px;
+  }
+
+  .outer-headings{
+    color: #000;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  h1{
+    font-size: 45px;
+  }
+  
+  .inner-headings {
+    border: 0px;
+    height: 50px;
+    line-height:  50px;
+    font-size: 45px;
+    text-transform: uppercase;
+    overflow: hidden;
+  }
+
+  .inner-headings span{
+    position: relative;
+    color: rgb(0, 0, 0);
+    animation: animation 10s ease
+    infinite;
+  }
+
+  @keyframes animation {
+    0%,
+    100%{
+        top:0;
+    }
+    20%{
+        top:0;
+    }
+    25%{
+        top: -50px;
+    }
+    45%{
+        top: -50px;
+    }
+    50%{
+        top: -100px;
+    }
+    70%{
+        top: -100px;
+    }
+    75%{
+        top: -150px;
+    }
+    95%{
+        top: -150px;
+    }
+  }
+
+
+  #profile{
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.849);
+    color: #000;
+    padding: 450px;
+    width: 800px;
+    left: -200; /* Initial left position */
+    transition: left 0.5s ease; /* Smooth transition */
+    border-radius: 40px;
+  }
+
+  #projects{
+    position: absolute;
+    background-color: rgba(180, 54, 54, 0.849);
+    color: #000;
+    padding: 450px;
+    width: 800px;
+    left: -200; /* Initial left position */
+    transition: left 0.5s ease; /* Smooth transition */
+    border-radius: 40px;
+  }
+
+  #timeline{
+    position: absolute;
+    background-color: rgba(157, 180, 54, 0.849);
+    color: #000;
+    padding: 450px;
+    width: 800px;
+    left: -200; /* Initial left position */
+    transition: left 0.5s ease; /* Smooth transition */
+    border-radius: 40px;
+  }
+
+  #notes{
+    position: absolute;
+    background-color: rgba(54, 180, 71, 0.849);
+    color: #000;
+    padding: 450px;
+    width: 800px;
+    left: -200; /* Initial left position */
+    transition: left 0.5s ease; /* Smooth transition */
+    border-radius: 40px;
+  }
+
+  #resume{
+    position: absolute;
+    background-color: rgba(54, 67, 180, 0.849);
+    color: #000;
+    padding: 450px;
+    width: 800px;
+    left: -200; /* Initial left position */
+    transition: left 0.5s ease; /* Smooth transition */
+    border-radius: 40px;
+  }
+
+  #contact{
+    position: absolute;
+    background-color: rgba(180, 54, 65, 0.849);
+    color: #000;
+    padding: 450px;
+    width: 800px;
+    left: -200; /* Initial left position */
+    transition: left 0.5s ease; /* Smooth transition */
+    border-radius: 40px;
+  }
