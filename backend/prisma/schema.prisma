@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int          @id @default(autoincrement())
+  email             String       @unique
+  password          String // bcrypt hashed
+  name              String
+  role              Role         @default(CLIENT)
+  projectLabel      String?
+  notes             String?
+  mustResetPassword Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  files             ClientFile[]
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+}
+
+model Booking {
+  id          Int           @id @default(autoincrement())
+  clientName  String
+  email       String
+  phone       String
+  service     ServiceType
+  slot        SlotType
+  date        DateTime
+  notes       String
+  status      BookingStatus @default(PENDING)
+  gcalEventId String?
+  createdAt   DateTime      @default(now())
+}
+
+enum ServiceType {
+  REAL_ESTATE
+  EVENTS
+  CONSTRUCTION
+  WEDDINGS
+}
+
+enum SlotType {
+  AM
+  PM
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model BlockedDate {
+  id   Int      @id @default(autoincrement())
+  date DateTime @unique
+}
+
+model AvailabilitySettings {
+  id          Int     @id @default(1)
+  mondayOn    Boolean @default(false)
+  tuesdayOn   Boolean @default(false)
+  wednesdayOn Boolean @default(false)
+  thursdayOn  Boolean @default(false)
+  fridayOn    Boolean @default(false)
+  saturdayOn  Boolean @default(true)
+  sundayOn    Boolean @default(true)
+}
+
+model PortfolioItem {
+  id            Int         @id @default(autoincrement())
+  title         String
+  category      ServiceType
+  thumbnailPath String
+  videoPath     String
+  displayOrder  Int         @default(0)
+  createdAt     DateTime    @default(now())
+}
+
+model Testimonial {
+  id         Int         @id @default(autoincrement())
+  clientName String
+  service    ServiceType
+  quote      String
+  rating     Int         @default(5)
+  visible    Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+}
+
+model ClientFile {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename   String
+  filePath   String
+  fileSize   BigInt
+  uploadedAt DateTime @default(now())
+}
+
+model SiteSettings {
+  id                 Int     @id @default(1)
+  phone              String  @default("(903) 520-9328")
+  email              String  @default("DronesByColin@gmail.com")
+  instagram          String  @default("@DronesByColin")
+  businessHours      String  @default("By appointment — weekends preferred")
+  part107Path        String?
+  googleRefreshToken String? // Google Calendar OAuth2 refresh token (server-side only)
+}
