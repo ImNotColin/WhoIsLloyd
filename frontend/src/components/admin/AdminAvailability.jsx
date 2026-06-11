@@ -1,3 +1,6 @@
+// AdminAvailability.jsx — the weekly day-of-week toggles plus one-off blocked
+// dates. This page is the final authority on whether the calendar says yes.
+
 import { useEffect, useState } from 'react';
 import {
   adminGetAvailability,
@@ -8,6 +11,8 @@ import {
 } from '../../services/api.js';
 import { PageTitle, Card, Button, Feedback } from './ui.jsx';
 
+// [settings key, human label] pairs — the field names the API expects, in the
+// order humans expect.
 const DAYS = [
   ['mondayOn', 'Monday'],
   ['tuesdayOn', 'Tuesday'],
@@ -36,11 +41,14 @@ export default function AdminAvailability() {
     load();
   }, []);
 
+  // Optimistic toggle: flip the checkbox immediately, then persist. If the
+  // save fails we reload from the server — the UI returns to reality with no
+  // lie left on screen.
   const toggleDay = async (key) => {
     const next = { ...settings, [key]: !settings[key] };
     setSettings(next);
     try {
-      const { id, ...days } = next;
+      const { id, ...days } = next; // the API wants days only, not the row id
       await adminUpdateDays(days);
       setFeedback({ ok: true, message: 'Availability saved' });
     } catch (err) {
@@ -49,6 +57,7 @@ export default function AdminAvailability() {
     }
   };
 
+  // Ground a single date: weddings, maintenance days, weather you can see coming.
   const block = async (e) => {
     e.preventDefault();
     if (!newDate) return;

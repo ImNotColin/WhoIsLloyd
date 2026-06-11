@@ -1,7 +1,13 @@
+// AdminBookings.jsx — the bookings ledger. Sortable list, expandable rows,
+// status transitions, deletion with confirmation. Classic admin CRUD: nobody's
+// favorite flight, but it has to be flown.
+
 import { useEffect, useState } from 'react';
 import { adminGetBookings, adminUpdateBooking, adminDeleteBooking, apiError } from '../../services/api.js';
 import { PageTitle, Card, Button, ServiceTag, StatusTag, Feedback, formatDateOnly } from './ui.jsx';
 
+// The full booking lifecycle. Note that CANCELLED is a status, not a deletion —
+// actual deletion lives further down and asks for confirmation first.
 const STATUSES = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
 
 export default function AdminBookings() {
@@ -15,12 +21,16 @@ export default function AdminBookings() {
     load();
   }, []);
 
+  // Sort a copy, never the state. Status sort breaks ties by date so rows
+  // don't reshuffle arbitrarily between renders.
   const sorted = [...bookings].sort((a, b) =>
     sortBy === 'date'
       ? String(a.date).localeCompare(String(b.date))
       : a.status.localeCompare(b.status) || String(a.date).localeCompare(String(b.date))
   );
 
+  // Status change: persist, report, then reload from the server rather than
+  // patching local state — the API is the single source of truth here.
   const setStatus = async (id, status) => {
     try {
       await adminUpdateBooking(id, status);
@@ -31,6 +41,8 @@ export default function AdminBookings() {
     }
   };
 
+  // Hard delete. window.confirm is unfashionable and unstyled, which is
+  // exactly the right amount of friction before destroying a record forever.
   const remove = async (id) => {
     if (!window.confirm(`Delete booking #${id}? This cannot be undone.`)) return;
     try {

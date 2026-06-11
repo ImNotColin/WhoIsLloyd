@@ -1,3 +1,8 @@
+// AdminClients.jsx — client account management: create accounts, issue
+// temporary passwords, deliver files with a live progress readout, and
+// (after a suitably stern confirm) delete everything. The busiest CRUD
+// page in the hangar.
+
 import { useEffect, useState } from 'react';
 import {
   adminGetClients,
@@ -13,6 +18,9 @@ import { formatBytes, formatDate } from '../portal/PortalDashboard.jsx';
 
 const EMPTY = { name: '', email: '', temporaryPassword: '', projectLabel: '', notes: '' };
 
+// 12 characters from an alphabet with no I/l/1/O/0 — no client should fail a
+// login because of a font. crypto.getRandomValues, because Math.random is for
+// dice games, not credentials.
 function generatePassword() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
   return Array.from(crypto.getRandomValues(new Uint32Array(12)))
@@ -24,7 +32,7 @@ export default function AdminClients() {
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [expanded, setExpanded] = useState(null);
-  const [uploading, setUploading] = useState(null); // { id, percent }
+  const [uploading, setUploading] = useState(null); // { id, percent } — whose upload is airborne, and how far along
   const [feedback, setFeedback] = useState(null);
 
   const load = () => adminGetClients().then(setClients).catch(() => {});
@@ -49,6 +57,8 @@ export default function AdminClients() {
     }
   };
 
+  // Deleting a client takes their delivered files down with them, so the
+  // confirm dialog spells that out in full. No fine print.
   const remove = async (client) => {
     if (
       !window.confirm(
@@ -65,6 +75,8 @@ export default function AdminClients() {
     }
   };
 
+  // Password reset: generate first, confirm second — the admin sees the new
+  // password before committing, because it has to be relayed to the client.
   const resetPassword = async (client) => {
     const pw = generatePassword();
     if (!window.confirm(`Reset ${client.name}'s password to: ${pw} ?`)) return;
@@ -77,6 +89,9 @@ export default function AdminClients() {
     }
   };
 
+  // File delivery with a live percentage. Drone footage is measured in
+  // gigabytes; a button that just says "Uploading…" for four minutes is
+  // indistinguishable from a crash.
   const upload = async (client, files) => {
     if (!files.length) return;
     setUploading({ id: client.id, percent: 0 });
@@ -233,6 +248,8 @@ export default function AdminClients() {
   );
 }
 
+// Inline edit form for an expanded client row. Drafts locally; nothing
+// reaches the server until Save Changes.
 function EditClient({ client, onSaved, setFeedback }) {
   const [form, setForm] = useState({
     name: client.name,

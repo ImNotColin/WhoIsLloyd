@@ -1,6 +1,8 @@
 /**
- * Primary CTA. Outlined gold by default with a fill-sweep on hover;
- * `solid` renders filled from the start.
+ * GoldButton — the site's primary CTA. Outlined gold by default with a
+ * fill-and-glow on hover; pass `solid` to start filled. Remaining props
+ * spread onto the <button>, so type/onClick/disabled behave like stock
+ * hardware. The glow is rgba gold at low alpha — confidence, not Vegas.
  */
 export default function GoldButton({
   children,

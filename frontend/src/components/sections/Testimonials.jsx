@@ -1,3 +1,6 @@
+// Testimonials.jsx — section 04. A horizontal snap-scrolling rail of approved
+// client praise. The API only returns testimonials Colin has marked visible.
+
 import { useEffect, useState } from 'react';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation.js';
 import TestimonialCard from '../ui/TestimonialCard.jsx';
@@ -13,7 +16,8 @@ export default function Testimonials() {
       .catch(() => setItems([]));
   }, []);
 
-  // Per spec: hidden entirely until the first testimonial exists
+  // Per spec: no testimonials, no section. A heading that says WHAT CLIENTS
+  // SAY followed by silence would answer its own question.
   if (items.length === 0) return null;
 
   return (

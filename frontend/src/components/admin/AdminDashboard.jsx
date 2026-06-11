@@ -1,3 +1,6 @@
+// AdminDashboard.jsx — the admin landing page. Four headline stats and a
+// "next 7 days" docket, so Colin knows tonight whether to charge batteries.
+
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminGetBookings, adminGetClients, adminGetPortfolioItems } from '../../services/api.js';
@@ -8,12 +11,18 @@ export default function AdminDashboard() {
   const [clients, setClients] = useState([]);
   const [portfolio, setPortfolio] = useState([]);
 
+  // Three independent fetches, three independently tolerated failures.
+  // A dashboard with partial data beats a dashboard holding short final
+  // behind a spinner.
   useEffect(() => {
     adminGetBookings().then(setBookings).catch(() => {});
     adminGetClients().then(setClients).catch(() => {});
     adminGetPortfolioItems().then(setPortfolio).catch(() => {});
   }, []);
 
+  // The 7-day window, computed in ISO date strings (YYYY-MM-DD), which compare
+  // correctly with plain string operators — the one date format that behaves.
+  // Cancelled bookings don't make the docket; that airspace is released.
   const today = new Date().toISOString().slice(0, 10);
   const weekOut = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
   const upcoming = bookings.filter((b) => {
@@ -21,6 +30,7 @@ export default function AdminDashboard() {
     return d >= today && d <= weekOut && b.status !== 'CANCELLED';
   });
 
+  // Headline numbers as [label, value] tuples; the Cards below do the styling.
   const stats = [
     ['TOTAL BOOKINGS', bookings.length],
     ['PENDING', bookings.filter((b) => b.status === 'PENDING').length],

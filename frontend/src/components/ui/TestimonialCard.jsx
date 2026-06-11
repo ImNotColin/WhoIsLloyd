@@ -1,5 +1,11 @@
+// TestimonialCard.jsx — a single testimonial: stars, quote, attribution.
+// The fixed min-width is what lets the horizontal rail in Testimonials.jsx
+// snap card-to-card instead of drifting.
+
 import { SERVICE_LABELS } from '../../content.js';
 
+// Always renders five stars; the unearned ones wear the line color instead of
+// gold. The aria-label carries the actual rating so the SVGs can stay silent.
 function Stars({ rating }) {
   return (
     <div className="flex gap-1 text-gold" aria-label={`${rating} out of 5 stars`}>

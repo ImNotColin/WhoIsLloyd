@@ -1,3 +1,6 @@
+// About.jsx — section 03, "THE PILOT". Bio copy, the FAA Part 107 credential,
+// and a decorative quadcopter rendered in SVG line art.
+
 import { useEffect, useState } from 'react';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation.js';
 import { ABOUT_COPY, BUSINESS } from '../../content.js';
@@ -7,6 +10,9 @@ export default function About() {
   const ref = useScrollAnimation();
   const [part107Path, setPart107Path] = useState(null);
 
+  // Fetch the Part 107 certificate image path from public settings. If the
+  // request fails we fly without it — the fallback badge below makes the same
+  // (true) claim, just without the framed photo.
   useEffect(() => {
     api
       .get('/admin/settings/public')
@@ -28,7 +34,9 @@ export default function About() {
             </p>
           ))}
 
-          {/* FAA Part 107 credential */}
+          {/* FAA Part 107 credential — the uploaded certificate when Colin has
+              provided one, otherwise the styled badge. Either way, the FAA is
+              satisfied and so is the layout. */}
           <div data-reveal className="mt-8">
             {part107Path ? (
               <figure className="inline-block border border-gold/40 p-2 bg-surface">
@@ -71,7 +79,8 @@ export default function About() {
           </p>
         </div>
 
-        {/* drone silhouette graphic */}
+        {/* Decorative quadcopter, hand-plotted in SVG. aria-hidden because it
+            carries exactly zero information — it just hovers there, on brand. */}
         <div data-reveal className="hidden md:flex items-center justify-center" aria-hidden="true">
           <svg
             viewBox="0 0 400 400"

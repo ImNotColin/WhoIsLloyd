@@ -1,3 +1,6 @@
+// Footer.jsx — the bottom of every page. Logo, copyright, privacy link,
+// Instagram. No surprises down here; that is the entire point of a footer.
+
 import { Link } from 'react-router-dom';
 import Logo from '../ui/Logo.jsx';
 import { BUSINESS } from '../../content.js';
@@ -13,6 +16,8 @@ export default function Footer() {
           </span>
         </div>
 
+        {/* getFullYear() at render time: the one maintenance task this file
+            will never generate. Nobody edits a copyright line in January. */}
         <div className="font-mono text-xs tracking-wide2 text-muted text-center">
           © {new Date().getFullYear()} DRONES BY COLIN · {BUSINESS.area.toUpperCase()}
         </div>

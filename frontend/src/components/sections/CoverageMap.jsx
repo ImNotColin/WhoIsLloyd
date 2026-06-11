@@ -1,3 +1,6 @@
+// CoverageMap.jsx — section 05, "WHERE WE FLY". A Leaflet map with a gold
+// 30-mile coverage ring centered on Bryan/College Station.
+
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -10,8 +13,13 @@ export default function CoverageMap() {
   const mapRef = useRef(null);
 
   useEffect(() => {
+    // Guard against double-initialization: React 18 StrictMode runs effects
+    // twice in dev, and Leaflet treats a second L.map() on the same div as a
+    // personal insult (it throws).
     if (mapRef.current || !mapEl.current) return undefined;
 
+    // scrollWheelZoom stays off — the map sits mid-page, and hijacking the
+    // wheel turns "scrolling past Texas" into "zooming into Texas".
     const map = L.map(mapEl.current, {
       center: MAP_CENTER,
       zoom: MAP_ZOOM,
@@ -20,7 +28,8 @@ export default function CoverageMap() {
     });
     mapRef.current = map;
 
-    // CartoDB Dark Matter — free, no API key
+    // CartoDB Dark Matter tiles — free, no API key, and the only basemap that
+    // doesn't sit on this color scheme like a fluorescent office light.
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
       {
@@ -31,7 +40,8 @@ export default function CoverageMap() {
       }
     ).addTo(map);
 
-    // ~30 mile coverage radius in gold
+    // The coverage ring: ~30 miles of gold at 7% fill. Inside the ring is
+    // standard rate. Outside the ring is a phone call.
     L.circle(MAP_CENTER, {
       radius: COVERAGE_RADIUS_METERS,
       color: '#C9A84C',
@@ -40,6 +50,7 @@ export default function CoverageMap() {
       fillOpacity: 0.07,
     }).addTo(map);
 
+    // Home base marker, with a popup for anyone who clicks on a dot to ask.
     L.circleMarker(MAP_CENTER, {
       radius: 6,
       color: '#C9A84C',
@@ -49,6 +60,8 @@ export default function CoverageMap() {
       .addTo(map)
       .bindPopup('<b>Drones by Colin</b><br/>Bryan / College Station, TX');
 
+    // Teardown: remove the map and clear the ref so a remount can initialize
+    // cleanly. Leaflet holds onto DOM nodes like a grudge if you skip this.
     return () => {
       map.remove();
       mapRef.current = null;

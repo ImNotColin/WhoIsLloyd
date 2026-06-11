@@ -1,4 +1,9 @@
-/** CS monogram — clean C+S in a circle, matches the business card mark. */
+/**
+ * Logo — the CS monogram in a double circle, matched to the business card
+ * mark. Strokes inherit currentColor, so it wears whatever the parent is
+ * wearing (almost always gold), and the whole thing scales off one `size`
+ * prop because it is, in the end, just geometry.
+ */
 export default function Logo({ size = 56, className = '' }) {
   return (
     <svg

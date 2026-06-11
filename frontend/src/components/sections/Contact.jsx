@@ -1,9 +1,14 @@
+// Contact.jsx — section 07. Contact details on the left, a controlled form on
+// the right. Submission status is a small state machine:
+// idle → sending → sent | error.
+
 import { useState } from 'react';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation.js';
 import GoldButton from '../ui/GoldButton.jsx';
 import { sendContact, apiError } from '../../services/api.js';
 import { BUSINESS } from '../../content.js';
 
+// One blank form, doing double duty as initial state and post-send reset.
 const EMPTY = { name: '', email: '', phone: '', message: '' };
 
 export default function Contact() {
@@ -11,8 +16,12 @@ export default function Contact() {
   const [form, setForm] = useState(EMPTY);
   const [status, setStatus] = useState({ state: 'idle' });
 
+  // Curried setter: one handler factory, four fields, zero copy-paste.
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
+  // Success clears the form; failure leaves the draft untouched — making
+  // someone retype their message is how you lose a lead. The error copy
+  // points at the phone number, which has excellent uptime.
   const submit = async (e) => {
     e.preventDefault();
     setStatus({ state: 'sending' });

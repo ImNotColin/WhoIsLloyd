@@ -1,3 +1,7 @@
+// AdminPortfolio.jsx — the portfolio back office. Thumbnail + video go up as
+// multipart FormData with a progress readout; ordering is a number field that
+// commits on blur. What the public sees as "THE WORK" gets loaded here first.
+
 import { useEffect, useState } from 'react';
 import {
   adminGetPortfolioItems,
@@ -24,6 +28,8 @@ export default function AdminPortfolio() {
     load();
   }, []);
 
+  // Publish a new item. Both files are required before takeoff — a portfolio
+  // entry without a video is just a thumbnail with ambitions.
   const create = async (e) => {
     e.preventDefault();
     if (!thumbnail || !video) {
@@ -37,6 +43,9 @@ export default function AdminPortfolio() {
     fd.append('thumbnail', thumbnail);
     fd.append('video', video);
 
+    // Track upload progress as a whole-number percent; the Publish button
+    // doubles as the progress bar. On success, reset everything — state,
+    // file pickers (via form.reset), and the list itself.
     setUploading(0);
     try {
       await adminCreatePortfolio(fd, (e2) => {
@@ -55,6 +64,8 @@ export default function AdminPortfolio() {
     }
   };
 
+  // Reordering commits on blur, and only when the number actually changed —
+  // no sense radioing the API about a tab-through.
   const reorder = async (item, displayOrder) => {
     try {
       await adminUpdatePortfolio(item.id, { displayOrder: Number(displayOrder) });

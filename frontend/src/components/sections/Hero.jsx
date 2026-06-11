@@ -1,3 +1,7 @@
+// Hero.jsx — the opening shot. Fullscreen looping aerial footage, a GSAP
+// load-in timeline, and just enough parallax to feel expensive without
+// making anyone airsick.
+
 import { useEffect, useRef } from 'react';
 import { gsap, ScrollTrigger, prefersReducedMotion } from '../../hooks/useScrollAnimation.js';
 import Logo from '../ui/Logo.jsx';
@@ -14,9 +18,13 @@ export default function Hero() {
   const bgRef = useRef(null);
 
   useEffect(() => {
+    // Reduced motion: skip everything. The hero is fully legible standing still.
     if (prefersReducedMotion()) return undefined;
     const ctx = gsap.context(() => {
-      // Cinematic load-in: logo → name → tagline → CTA
+      // Load-in timeline: logo → name → tagline → CTA → scroll cue. The
+      // negative position offsets overlap each entrance with the last —
+      // strictly sequential reveals feel like a slideshow, and we bill
+      // ourselves as cinematography.
       gsap
         .timeline({ defaults: { ease: 'power3.out' } })
         .fromTo('[data-hero-logo]', { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 1 })
@@ -25,9 +33,11 @@ export default function Hero() {
         .fromTo('[data-hero-cta]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7 }, '-=0.4')
         .fromTo('[data-hero-scroll]', { opacity: 0 }, { opacity: 1, duration: 0.8 }, '-=0.2');
 
-      // Parallax: background moves at 0.4x scroll speed
+      // Parallax, exercised with restraint: the background drifts at roughly
+      // 0.4x scroll speed. The scale-110 wrapper below provides the overscan
+      // so the drift never exposes a bare edge.
       gsap.to(bgRef.current, {
-        yPercent: 24, // (1 - 0.4) * 0.4 viewport offset feel
+        yPercent: 24, // the 0.4x drift over one viewport of scroll, as % of element height
         ease: 'none',
         scrollTrigger: {
           trigger: rootRef.current,
@@ -37,6 +47,9 @@ export default function Hero() {
         },
       });
     }, rootRef);
+    // ctx.revert() recalls every tween and ScrollTrigger registered above in
+    // one call. A ScrollTrigger that outlives its component keeps flying the
+    // old mission on the new page; we do not authorize that flight.
     return () => ctx.revert();
   }, []);
 
@@ -45,7 +58,10 @@ export default function Hero() {
 
   return (
     <section id="hero" ref={rootRef} className="relative h-screen overflow-hidden">
-      {/* Looping stock drone footage — swap /storage/stock/hero.mp4 with real reel */}
+      {/* Background reel. autoPlay + muted + playsInline is the complete
+          paperwork mobile browsers require before granting takeoff clearance
+          to a video. Stock footage for now — swap /storage/stock/hero.mp4
+          for the real reel when it lands. */}
       <div ref={bgRef} className="absolute inset-0 scale-110">
         <video
           autoPlay
@@ -60,7 +76,8 @@ export default function Hero() {
         </video>
       </div>
 
-      {/* bottom-heavy dark gradient */}
+      {/* Bottom-heavy gradient: the footage descends into ink so the next
+          section arrives as a controlled descent, not a hard cut. */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-ink" />
 
       <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
@@ -84,7 +101,8 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* scroll indicator */}
+      {/* Scroll cue. Decorative, hence aria-hidden — screen readers already
+          know how scrolling works. */}
       <div
         data-hero-scroll
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"

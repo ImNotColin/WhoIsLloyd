@@ -1,3 +1,7 @@
+// AdminTestimonials.jsx — testimonial intake and moderation. Add quotes,
+// toggle visibility, delete. Every kind word requires Colin's stamp before
+// it's cleared for the homepage.
+
 import { useEffect, useState } from 'react';
 import {
   adminGetTestimonials,
@@ -26,6 +30,7 @@ export default function AdminTestimonials() {
   const create = async (e) => {
     e.preventDefault();
     try {
+      // rating arrives from the input as a string; the API prefers its stars numeric.
       await adminCreateTestimonial({ ...form, rating: Number(form.rating) });
       setFeedback({ ok: true, message: 'Testimonial added' });
       setForm(EMPTY);
@@ -35,6 +40,8 @@ export default function AdminTestimonials() {
     }
   };
 
+  // The approval mechanism, reduced to one boolean. Hidden testimonials
+  // still exist; they are simply grounded.
   const toggle = async (item) => {
     try {
       await adminUpdateTestimonial(item.id, { visible: !item.visible });

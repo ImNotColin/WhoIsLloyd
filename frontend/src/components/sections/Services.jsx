@@ -1,8 +1,13 @@
+// Services.jsx — section 01, "WHAT WE SHOOT". A kicker, a heading, and four
+// service cards in a grid. The shortest section on the page, fittingly: we
+// shoot four things and see no reason to pad the list.
+
 import { useScrollAnimation } from '../../hooks/useScrollAnimation.js';
 import ServiceCard from '../ui/ServiceCard.jsx';
 import { SERVICES } from '../../content.js';
 
 export default function Services() {
+  // Wires up the data-reveal scroll-in animation for everything inside.
   const ref = useScrollAnimation();
 
   return (

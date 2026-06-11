@@ -1,3 +1,7 @@
+// BookingCTA.jsx — section 06, the big ask. One heading, one phone number,
+// one gold button. The 7-day minimum is enforced in the booking flow itself;
+// this section just files the flight plan early so nobody is surprised.
+
 import { useNavigate } from 'react-router-dom';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation.js';
 import GoldButton from '../ui/GoldButton.jsx';

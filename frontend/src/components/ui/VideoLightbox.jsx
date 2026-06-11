@@ -1,9 +1,15 @@
 import { useEffect, useRef } from 'react';
 
-/** Fullscreen video player overlay. Closes on ESC, backdrop click, or X. */
+/**
+ * VideoLightbox — fullscreen video overlay for portfolio items. Closes on
+ * ESC, backdrop click, or the ×: three clearly marked exits, per regulation.
+ */
 export default function VideoLightbox({ item, onClose }) {
   const videoRef = useRef(null);
 
+  // ESC handler plus a body scroll lock for the duration. Cleanup restores
+  // both — a page that can no longer scroll after the lightbox closes is a
+  // support email waiting to be written.
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
@@ -31,10 +37,15 @@ export default function VideoLightbox({ item, onClose }) {
       >
         ×
       </button>
+      {/* stopPropagation keeps clicks on the player from reaching the
+          backdrop's onClose — pausing a video should not also eject you. */}
       <div
         className="w-full max-w-6xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* autoPlay is allowed with sound here: the user clicked a thumbnail
+            to get this far, and browsers honor a real gesture. Controls stay
+            on, because commandeering playback is rude. */}
         <video
           ref={videoRef}
           src={item.videoPath}

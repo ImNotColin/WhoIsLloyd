@@ -1,4 +1,6 @@
-// Small shared pieces for the admin panel — clean, functional Tailwind UI.
+// ui.jsx — shared admin primitives: page titles, cards, buttons, tags, and
+// the feedback line. The boring parts of seven admin pages, centralized so
+// the boredom is at least consistent.
 import { SERVICE_LABELS } from '../../content.js';
 
 export function PageTitle({ children }) {
@@ -14,6 +16,8 @@ export function Card({ title, children, className = '' }) {
   );
 }
 
+// The standard admin button. `danger` swaps gold for red on the actions that
+// deserve a moment's hesitation; everything else passes straight through.
 export function Button({ children, danger = false, className = '', ...props }) {
   return (
     <button
@@ -38,6 +42,8 @@ export function ServiceTag({ service }) {
   );
 }
 
+// One color per stage of the booking lifecycle. CANCELLED is muted rather
+// than red — it's an outcome, not an emergency.
 const STATUS_COLORS = {
   PENDING: 'text-yellow-400 border-yellow-900',
   CONFIRMED: 'text-gold border-gold/40',
@@ -55,6 +61,8 @@ export function StatusTag({ status }) {
   );
 }
 
+// Inline success/error line. Renders nothing until there is something to
+// confess; expects { ok, message }.
 export function Feedback({ value }) {
   if (!value) return null;
   return (
@@ -68,6 +76,8 @@ export function Feedback({ value }) {
   );
 }
 
+// ISO timestamp → YYYY-MM-DD by truncation. No timezone math, no date
+// library, no regrets.
 export function formatDateOnly(iso) {
   return String(iso).slice(0, 10);
 }

@@ -1,3 +1,7 @@
+// Portfolio.jsx — section 02, "THE WORK". Fetches published portfolio items
+// and lays them out as a clickable thumbnail grid; selecting one opens the
+// fullscreen video lightbox.
+
 import { useEffect, useState } from 'react';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation.js';
 import VideoLightbox from '../ui/VideoLightbox.jsx';
@@ -9,6 +13,8 @@ export default function Portfolio() {
   const [items, setItems] = useState([]);
   const [active, setActive] = useState(null);
 
+  // Fetch once on mount. A failed request degrades to the empty state below —
+  // "follow us on Instagram" is a far better look than a stack trace.
   useEffect(() => {
     getPortfolio()
       .then(setItems)
@@ -48,7 +54,8 @@ export default function Portfolio() {
                       ease-out group-hover:scale-105 opacity-90 group-hover:opacity-100"
                   />
                 </div>
-                {/* play affordance */}
+                {/* Play affordance — hidden until hover, so the grid reads as
+                    photography first and reveals itself as video on approach. */}
                 <span
                   className="absolute inset-0 flex items-center justify-center opacity-0
                     group-hover:opacity-100 transition-opacity duration-300"

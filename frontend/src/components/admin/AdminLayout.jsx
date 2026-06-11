@@ -1,7 +1,11 @@
+// AdminLayout.jsx — the admin shell: sidebar nav (which folds into a top bar
+// on mobile), a logout button, and an <Outlet /> where the actual work lands.
+
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.jsx';
 import Logo from '../ui/Logo.jsx';
 
+// One entry per admin page. The order here is the order on screen.
 const NAV = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/bookings', label: 'Bookings' },
@@ -42,6 +46,8 @@ export default function AdminLayout() {
               {item.label}
             </NavLink>
           ))}
+          {/* Logout sits apart from the nav links and goes red on hover —
+              a small preflight warning before you actually commit to it. */}
           <button
             onClick={logout}
             className="px-4 py-2.5 font-mono text-xs tracking-wide2 uppercase text-left text-muted

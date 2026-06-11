@@ -1,3 +1,6 @@
+// AdminSettings.jsx — business settings: the contact info shown on the public
+// site, the Google Calendar OAuth handshake, and the FAA Part 107 license image.
+
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -28,6 +31,10 @@ export default function AdminSettings() {
       })
       .catch(() => {});
 
+  // On mount: load settings, then check whether we just landed back from
+  // Google's OAuth redirect. "no_refresh_token" usually means Google decided
+  // we'd already been introduced and skipped the consent screen — reconnecting
+  // generally shakes one loose.
   useEffect(() => {
     load();
     const cal = searchParams.get('calendar');
@@ -53,6 +60,7 @@ export default function AdminSettings() {
     }
   };
 
+  // Replace the Part 107 image shown in the public About section.
   const uploadLicense = async (file) => {
     if (!file) return;
     try {
@@ -64,6 +72,8 @@ export default function AdminSettings() {
     }
   };
 
+  // Full-page redirect to Google's consent screen. No popup window — popups
+  // get blocked, and OAuth has enough failure modes without volunteers.
   const connectCalendar = async () => {
     try {
       const { url } = await adminGetGoogleAuthUrl();

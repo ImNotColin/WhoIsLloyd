@@ -1,8 +1,13 @@
+// Navigation.jsx — the corner MENU trigger and the fullscreen overlay it
+// summons. The overlay sweeps down from above like weather; the links stagger
+// in once it has settled.
+
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { gsap, prefersReducedMotion } from '../../hooks/useScrollAnimation.js';
 import Logo from '../ui/Logo.jsx';
 
+// Flight plan for the menu. Anchor links scroll the homepage; `to` links leave it.
 const LINKS = [
   { label: 'HOME', anchor: 'hero' },
   { label: 'SERVICES', anchor: 'services' },
@@ -21,7 +26,9 @@ export default function Navigation() {
 
   const close = useCallback(() => setOpen(false), []);
 
-  // Sweep the overlay in / stagger the links
+  // Overlay choreography. Open: sweep down from -100% and stagger the links in
+  // 70ms apart — six links arriving simultaneously reads as a crash, not a
+  // landing. Reduced-motion users get an instant transform and zero theatrics.
   useEffect(() => {
     const overlay = overlayRef.current;
     if (!overlay) return;
@@ -46,6 +53,8 @@ export default function Navigation() {
     }
   }, [open]);
 
+  // ESC bails out of the overlay, and body scroll locks while it's up so the
+  // page underneath holds its position until the menu clears the airspace.
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && close();
     document.addEventListener('keydown', onKey);
@@ -56,6 +65,8 @@ export default function Navigation() {
     };
   }, [open, close]);
 
+  // Route links navigate outright. Anchor links smooth-scroll if we're already
+  // on the homepage; otherwise we hand the router a hash and let it taxi over.
   const goTo = (link) => {
     close();
     if (link.to) {
@@ -69,7 +80,9 @@ export default function Navigation() {
 
   return (
     <>
-      {/* Corner trigger — always visible, subtle */}
+      {/* Corner trigger — always on station, deliberately quiet. The header
+          strip is pointer-events-none so clicks pass through the empty middle;
+          only the logo and MENU button actually catch anything. */}
       <header className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 md:px-10 py-5 pointer-events-none">
         <Link to="/" className="pointer-events-auto text-gold" aria-label="Drones by Colin — home">
           <Logo size={42} />
@@ -89,14 +102,16 @@ export default function Navigation() {
         </button>
       </header>
 
-      {/* Fullscreen overlay */}
+      {/* Fullscreen overlay. Ships hidden and translated off-screen so first
+          paint never flashes the menu at anyone who didn't ask for it. */}
       <nav
         ref={overlayRef}
         className="fixed inset-0 z-[90] bg-black/95 backdrop-blur-sm flex-col items-center justify-center hidden"
         style={{ display: open ? 'flex' : undefined, transform: 'translateY(-100%)' }}
         aria-hidden={!open}
       >
-        {/* faint drone silhouette behind the links */}
+        {/* Faint drone silhouette at 4% opacity — present, like any good pilot,
+            without drawing attention to itself. */}
         <svg
           viewBox="0 0 200 200"
           className="absolute w-[70vmin] h-[70vmin] text-bone opacity-[0.04] pointer-events-none"
