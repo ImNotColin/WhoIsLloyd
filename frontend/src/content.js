@@ -1,10 +1,18 @@
-// Site copy in one place — easy to tune without touching components.
+// content.js — every word on the public site, in one file. When Colin wants
+// to change the copy (and he will), the edit happens here, not in a JSX
+// scavenger hunt across nine components.
 
-// Three cinematic tagline options for Colin to pick from:
+// ---- Tagline ----------------------------------------------------------------
+// Three cinematic options were drafted for Colin to choose from:
 //   1. "ABOVE IT ALL."
 //   2. "EVERY STORY LOOKS BETTER FROM UP HERE."
 //   3. "THE SKY IS THE STUDIO."
+// He picked #1. The shortest one. Pilots respect economy of motion.
 export const TAGLINE = 'ABOVE IT ALL.';
+
+// ---- Business facts ---------------------------------------------------------
+// The canonical record. If the phone number is wrong here, it's wrong everywhere,
+// which is the point.
 
 export const BUSINESS = {
   name: 'DRONES BY COLIN',
@@ -17,6 +25,9 @@ export const BUSINESS = {
   area: 'Bryan & College Station, Texas',
 };
 
+// ---- Services ---------------------------------------------------------------
+// Keys mirror the backend's Service enum exactly. Rename one and bookings
+// quietly stop matching — so don't.
 export const SERVICE_LABELS = {
   REAL_ESTATE: 'Real Estate',
   EVENTS: 'Events',
@@ -51,21 +62,26 @@ export const SERVICES = [
   },
 ];
 
+// ---- About section ----------------------------------------------------------
+// One paragraph per array entry; the About component maps these to <p> tags.
 export const ABOUT_COPY = [
   "I'm Colin Scharfenstine — pilot, shooter, editor. One person, one drone, and an obsession with the frame nobody else can get.",
   'Aerial changed how I see everything. A house becomes an estate. A job site becomes progress you can measure. A wedding becomes the wide shot you remember it as. My job is to put your story at that altitude.',
   'Based in Bryan/College Station and FAA Part 107 certified — flights are legal, insured-area aware, and planned before the props ever spin.',
 ];
 
-// Hero video: served from /storage/stock/hero.mp4 on the server; the remote
-// Pexels clip below is the dev/preview fallback until real footage is loaded.
+// ---- Hero media -------------------------------------------------------------
+// The hero tries /storage/stock/hero.mp4 on our server first; the Pexels clip
+// is the dev/preview understudy until Colin's own footage takes the role.
+// Yes, the placeholder for a drone cinematography site is stock drone footage.
+// We are aware.
 export const HERO_VIDEO_LOCAL = '/storage/stock/hero.mp4';
 export const HERO_VIDEO_FALLBACK =
   'https://videos.pexels.com/video-files/3129957/3129957-hd_1920_1080_25fps.mp4';
 export const HERO_POSTER =
   'https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?auto=compress&cs=tinysrgb&w=1920';
 
-// Coverage map (Bryan/College Station)
+// ---- Coverage map (Bryan/College Station) -----------------------------------
 export const MAP_CENTER = [30.628, -96.3344];
 export const MAP_ZOOM = 11;
-export const COVERAGE_RADIUS_METERS = 48280; // ~30 miles
+export const COVERAGE_RADIUS_METERS = 48280; // ~30 miles, in the metric units Leaflet insists on

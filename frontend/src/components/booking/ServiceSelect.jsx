@@ -1,3 +1,8 @@
+// ServiceSelect.jsx — wizard step 1: pick what we're shooting. A grid of
+// big buttons rendered from SERVICES in content.js; add a service there and
+// it appears here, no edits required. Descriptions clamp at two lines so an
+// enthusiastic rewrite can't break the grid.
+
 import { SERVICES } from '../../content.js';
 
 export default function ServiceSelect({ value, onSelect }) {

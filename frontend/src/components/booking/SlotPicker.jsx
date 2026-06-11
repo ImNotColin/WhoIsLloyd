@@ -1,3 +1,6 @@
+// SlotPicker.jsx — wizard step 2: morning or afternoon. Two buttons, one
+// decision. The noon hour belongs to neither slot; even the drone gets lunch.
+
 const SLOTS = [
   { key: 'AM', name: 'MORNING', time: '8:00 AM – 12:00 PM' },
   { key: 'PM', name: 'AFTERNOON', time: '1:00 PM – 5:00 PM' },

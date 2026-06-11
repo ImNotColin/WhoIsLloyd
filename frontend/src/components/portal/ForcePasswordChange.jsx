@@ -1,10 +1,18 @@
+// ForcePasswordChange.jsx — the mandatory password change screen. Colin hands
+// out temporary passwords when he creates accounts; this is the checkpoint
+// that makes sure none of them survive past the first login.
+
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth.jsx';
 import { apiError } from '../../services/api.js';
 import Logo from '../ui/Logo.jsx';
 import GoldButton from '../ui/GoldButton.jsx';
 
-/** Shown after first login (or admin-forced reset) until the password changes. */
+/**
+ * Shown after first login (or an admin-forced reset) until the password
+ * changes. There is no skip button. The only exits are a new password or
+ * the sign-out link below — holding patterns have rules.
+ */
 export default function ForcePasswordChange() {
   const { changePassword, logout } = useAuth();
   const [current, setCurrent] = useState('');
@@ -15,6 +23,8 @@ export default function ForcePasswordChange() {
 
   const submit = async (e) => {
     e.preventDefault();
+    // Match check happens client-side; no reason to bother the server with
+    // a typo we can catch from here.
     if (next !== confirm) {
       setError('New passwords do not match');
       return;
@@ -22,6 +32,8 @@ export default function ForcePasswordChange() {
     setBusy(true);
     setError(null);
     try {
+      // Success updates the stored user (mustResetPassword clears), and the
+      // route guards re-render this screen out of existence.
       await changePassword(current, next);
     } catch (err) {
       setError(apiError(err, 'Password change failed'));

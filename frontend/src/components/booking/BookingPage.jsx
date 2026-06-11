@@ -1,3 +1,8 @@
+// BookingPage.jsx — the four-step booking wizard: service, slot, date, details.
+// Strictly linear with a back button, like good preflight checklists and bad
+// airport security. Each step owns one piece of state; this page just holds
+// the clipboard.
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navigation from '../layout/Navigation.jsx';
@@ -21,6 +26,9 @@ export default function BookingPage() {
   const [error, setError] = useState(null);
   const [confirmation, setConfirmation] = useState(null);
 
+  // Final handoff to the server. On failure the error message includes the
+  // phone number, because a person who made it through four steps deserves
+  // a runway, not a shrug.
   const submit = async (form) => {
     setSubmitting(true);
     setError(null);
@@ -34,6 +42,7 @@ export default function BookingPage() {
     }
   };
 
+  // Touchdown. The confirmation screen replaces the wizard entirely.
   if (confirmation) {
     return (
       <Shell>
@@ -60,7 +69,7 @@ export default function BookingPage() {
       <p className="section-kicker mb-4">BOOKING</p>
       <h1 className="heading-display text-5xl md:text-7xl mb-10">BOOK YOUR SHOOT</h1>
 
-      {/* step indicator */}
+      {/* Step indicator: gold = current leg, dim bone = completed, faint = not yet. */}
       <ol className="flex flex-wrap gap-x-6 gap-y-2 mb-12 font-mono text-[11px] tracking-wide2">
         {STEPS.map((label, i) => (
           <li
@@ -97,6 +106,8 @@ export default function BookingPage() {
             value={slot}
             onSelect={(v) => {
               setSlot(v);
+              // Changing the slot invalidates any previously chosen date —
+              // the morning and afternoon calendars don't agree on much.
               setDate(null);
               setStep(2);
             }}
@@ -133,6 +144,9 @@ export default function BookingPage() {
   );
 }
 
+// ---- Layout helpers ---------------------------------------------------------
+
+// Nav + footer chrome shared by the wizard and the confirmation screen.
 function Shell({ children }) {
   return (
     <>
@@ -143,6 +157,8 @@ function Shell({ children }) {
   );
 }
 
+// Step heading plus the optional BACK button. Step 0 gets no back button;
+// there is nothing before the beginning.
 function StepWrap({ title, onBack, children }) {
   return (
     <div>

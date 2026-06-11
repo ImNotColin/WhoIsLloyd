@@ -1,3 +1,9 @@
+// BookingForm.jsx — wizard step 4: contact details and shoot notes.
+// Service/slot/date arrive as props already chosen; this form only collects
+// who you are and what we're flying over. Validation is plain HTML
+// constraints — the browser nags for free, and the server re-checks
+// everything anyway because browsers can be talked out of things.
+
 import { useState } from 'react';
 import GoldButton from '../ui/GoldButton.jsx';
 import { SERVICE_LABELS } from '../../content.js';
@@ -6,6 +12,7 @@ const SLOT_LABELS = { AM: 'Morning (8am–12pm)', PM: 'Afternoon (1pm–5pm)' };
 
 export default function BookingForm({ service, slot, date, onSubmit, submitting, error }) {
   const [form, setForm] = useState({ clientName: '', email: '', phone: '', notes: '' });
+  // One curried onChange to rule all four fields.
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
   return (
@@ -16,7 +23,8 @@ export default function BookingForm({ service, slot, date, onSubmit, submitting,
       }}
       className="space-y-6"
     >
-      {/* pre-filled summary */}
+      {/* Read-only recap of steps 1–3, so nobody confirms a wedding shoot
+          they meant to book as real estate. */}
       <div className="grid sm:grid-cols-3 gap-4 font-mono text-xs tracking-wide2">
         {[
           ['SERVICE', SERVICE_LABELS[service]],
@@ -64,6 +72,7 @@ export default function BookingForm({ service, slot, date, onSubmit, submitting,
         <p className="font-mono text-xs tracking-wide2 text-red-400">{error}</p>
       )}
 
+      {/* Disabled while in flight — the double-clickers shall not double-book. */}
       <GoldButton solid type="submit" disabled={submitting} className="w-full sm:w-auto">
         {submitting ? 'BOOKING…' : 'CONFIRM BOOKING'}
       </GoldButton>

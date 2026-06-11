@@ -1,3 +1,6 @@
+// App.jsx — the route table. Decides who lands where, and who gets turned
+// around at the gate. Public site up front, portal and admin behind auth.
+
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth.jsx';
@@ -5,7 +8,9 @@ import { useAuth } from './hooks/useAuth.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ForcePasswordChange from './components/portal/ForcePasswordChange.jsx';
 
-// Everything beyond the public one-pager is code-split — visitors never load it.
+// ---- Lazy chunks ------------------------------------------------------------
+// Everything beyond the public one-pager is code-split. A visitor who came to
+// watch drone footage should not be charged for the admin dashboard's baggage.
 const BookingPage = lazy(() => import('./components/booking/BookingPage.jsx'));
 const PortalLogin = lazy(() => import('./components/portal/PortalLogin.jsx'));
 const PortalDashboard = lazy(() => import('./components/portal/PortalDashboard.jsx'));
@@ -19,6 +24,10 @@ const AdminPortfolio = lazy(() => import('./components/admin/AdminPortfolio.jsx'
 const AdminTestimonials = lazy(() => import('./components/admin/AdminTestimonials.jsx'));
 const AdminSettings = lazy(() => import('./components/admin/AdminSettings.jsx'));
 
+// ---- Guards -----------------------------------------------------------------
+
+// The no-fly zone enforcement. No token: back to /portal. Not an admin trying
+// to be one: same. Stale temporary password: grounded until it's changed.
 function RequireAuth({ children, admin = false }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/portal" replace />;
@@ -27,6 +36,9 @@ function RequireAuth({ children, admin = false }) {
   return children;
 }
 
+// SPAs preserve scroll position across navigations, which nobody has ever
+// wanted. Reset to the top on every route change — unless a #hash is steering,
+// in which case HomePage handles the descent.
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -34,6 +46,8 @@ function ScrollToTop() {
   }, [pathname]);
   return null;
 }
+
+// ---- Routes -----------------------------------------------------------------
 
 export default function App() {
   return (
@@ -70,6 +84,7 @@ export default function App() {
           <Route path="settings" element={<AdminSettings />} />
         </Route>
 
+        {/* Lost? The homepage is this way. No 404 page; nothing here is worth memorializing. */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </Suspense>
@@ -77,6 +92,9 @@ export default function App() {
   );
 }
 
+// /portal is a switchboard, not a page: anonymous users get the login form,
+// fresh accounts get the mandatory password change, admins get rerouted to
+// /admin, and actual clients finally get their footage.
 function PortalRoot() {
   const { user } = useAuth();
   if (!user) return <PortalLogin />;

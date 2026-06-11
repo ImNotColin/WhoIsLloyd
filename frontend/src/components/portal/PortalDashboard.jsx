@@ -1,9 +1,17 @@
+// PortalDashboard.jsx — where clients land after login: their files, their
+// download buttons, and any notes Colin left with the delivery. The footage
+// took weeks to shoot and edit; this page's only job is to hand it over
+// without ceremony.
+
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.jsx';
 import { getPortalMe, downloadPortalFile } from '../../services/api.js';
 import Logo from '../ui/Logo.jsx';
 
+// ---- Formatters (exported — the admin file lists borrow these) --------------
+
+// 1234567 -> "1.2 MB". Whole bytes get no decimal; nobody needs "512.0 B".
 export function formatBytes(bytes) {
   const n = Number(bytes);
   if (!n) return '0 B';
@@ -12,6 +20,7 @@ export function formatBytes(bytes) {
   return `${(n / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
+// ISO timestamp -> "Jun 11, 2026".
 export function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -19,6 +28,8 @@ export function formatDate(iso) {
     day: 'numeric',
   });
 }
+
+// ---- Dashboard --------------------------------------------------------------
 
 export default function PortalDashboard() {
   const { user, logout } = useAuth();
@@ -32,6 +43,8 @@ export default function PortalDashboard() {
       .catch(() => setError('Could not load your projects. Try refreshing.'));
   }, []);
 
+  // Track which file is mid-download so its button can say so. Wedding films
+  // are not small; without feedback people click again and download two.
   const download = async (file) => {
     setDownloading(file.id);
     try {
@@ -55,6 +68,8 @@ export default function PortalDashboard() {
         </button>
       </header>
 
+      {/* Greet from the cached auth user until /portal/me lands — better a
+          name from localStorage than "WELCOME, " followed by nothing. */}
       <h1 className="heading-display text-4xl md:text-6xl mb-2">
         WELCOME, {(me?.name || user?.name || '').toUpperCase()}
       </h1>

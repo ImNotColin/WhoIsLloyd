@@ -1,3 +1,7 @@
+// PortalLogin.jsx — the client portal's front door. No self-signup, no
+// "forgot password" flow: Colin creates every account by hand, and resets
+// happen over the phone. At this scale, the human is the identity provider.
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.jsx';
@@ -18,7 +22,9 @@ export default function PortalLogin() {
     setError(null);
     try {
       await login(email, password);
-      // PortalRoot re-renders into the dashboard / password change / admin
+      // No navigate() here on purpose: setting the user makes PortalRoot
+      // re-render into the dashboard, the forced password change, or the
+      // admin redirect. State is the router.
     } catch (err) {
       setError(apiError(err, 'Login failed'));
     } finally {

@@ -1,3 +1,7 @@
+// PrivacyPage.jsx — the privacy policy. Static prose, no state, no effects.
+// The policy itself is short because the data collection is short; for once,
+// a privacy page whose length is proportional to what's actually collected.
+
 import { Link } from 'react-router-dom';
 import Navigation from '../components/layout/Navigation.jsx';
 import Footer from '../components/layout/Footer.jsx';

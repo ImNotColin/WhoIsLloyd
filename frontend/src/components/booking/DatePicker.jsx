@@ -1,13 +1,23 @@
+// DatePicker.jsx — wizard step 3: the availability calendar. A hand-rolled
+// month grid, because every calendar library we auditioned weighed more than
+// the drone.
+
 import { useEffect, useMemo, useState } from 'react';
 import { getMonthAvailability } from '../../services/api.js';
 import { BUSINESS } from '../../content.js';
 
 const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
+// ---- Month math -------------------------------------------------------------
+// Months travel as "YYYY-MM" strings throughout. String comparison sorts them
+// correctly, which spares us a great deal of Date arithmetic and the bugs
+// that come bundled with it.
+
 function monthKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+// "2026-06" -> "June 2026", for the header.
 function monthLabel(key) {
   const [y, m] = key.split('-').map(Number);
   return new Date(y, m - 1, 1).toLocaleString('en-US', {
@@ -18,7 +28,8 @@ function monthLabel(key) {
 
 /**
  * Month calendar fed by /api/bookings/availability.
- * `slot` ("AM"|"PM") determines which half-day's availability gates a date.
+ * `slot` ("AM"|"PM") determines which half-day's availability gates a date —
+ * the server reports both halves and we judge only the one being booked.
  */
 export default function DatePicker({ slot, value, onSelect }) {
   const [month, setMonth] = useState(() => monthKey(new Date()));
@@ -35,6 +46,7 @@ export default function DatePicker({ slot, value, onSelect }) {
 
   const currentMonth = monthKey(new Date());
 
+  // Paging is clamped at the current month. The past is fully booked.
   const shiftMonth = (delta) => {
     const [y, m] = month.split('-').map(Number);
     const d = new Date(y, m - 1 + delta, 1);
@@ -43,7 +55,9 @@ export default function DatePicker({ slot, value, onSelect }) {
     setMonth(next);
   };
 
-  // Leading blanks so day 1 lands on its weekday column
+  // Pad the grid with leading blanks so day 1 lands in its weekday column.
+  // UTC on purpose: the server's day list is timezone-agnostic, and we are not
+  // going to let local midnight shift the calendar by a day for night owls.
   const cells = useMemo(() => {
     if (!data) return [];
     const [y, m] = month.split('-').map(Number);
@@ -51,6 +65,9 @@ export default function DatePicker({ slot, value, onSelect }) {
     return [...Array(firstDow).fill(null), ...data.days];
   }, [data, month]);
 
+  // Classify a day for the requested slot. Closed days get a title attribute
+  // explaining why — a disabled square with no explanation just reads as a
+  // grudge.
   const dayState = (day) => {
     if (!day) return null;
     const open = slot === 'AM' ? day.am : day.pm;
@@ -61,6 +78,8 @@ export default function DatePicker({ slot, value, onSelect }) {
       BLOCKED: 'Unavailable',
       FULL: 'Fully booked',
     };
+    // No named reason but the other half-day is free? Say so — it converts
+    // a dead end into a different booking.
     const otherOpen = slot === 'AM' ? day.pm : day.am;
     return {
       open: false,

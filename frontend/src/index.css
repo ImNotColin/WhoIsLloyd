@@ -1,7 +1,13 @@
+/* index.css — global styles for the dark, gold, faintly grainy aesthetic.
+   Tailwind handles the layout; everything below is the stuff Tailwind
+   can't express politely: pseudo-elements, scrollbars, and third-party CSS. */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Design tokens. These shadow the Tailwind palette in tailwind.config.js —
+   change a color in one place and you owe the other place a visit. */
 :root {
   --color-black: #0a0a0a;
   --color-surface: #111111;
@@ -13,6 +19,8 @@
   --color-overlay: rgba(0, 0, 0, 0.85);
 }
 
+/* Smooth anchor scrolling — and the off switch for anyone who asked the OS
+   for less motion. They asked once; we don't make them ask per-site. */
 html {
   scroll-behavior: smooth;
 }
@@ -28,8 +36,11 @@ body {
   overflow-x: hidden;
 }
 
-/* Grain texture — single fixed pseudo-element on body (per spec),
-   matches the distressed business-card look. */
+/* The film grain. One fixed pseudo-element on body, opacity 0.05 — enough to
+   feel cinematic, not enough to look like a broken TV. The SVG turbulence
+   filter is inlined as a data URI, so the texture costs zero network requests
+   and sits at z-index 9999, above everything, touching nothing
+   (pointer-events: none). */
 body::after {
   content: '';
   position: fixed;
@@ -40,11 +51,14 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* Even highlighted text is on brand. */
 ::selection {
   background: var(--color-gold);
   color: var(--color-black);
 }
 
+/* Custom scrollbar — WebKit only. Firefox users get the stock one and,
+   statistically, do not mind. */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -59,6 +73,7 @@ body::after {
   background: var(--color-gold-dim);
 }
 
+/* Reusable component classes — the typographic house style. */
 @layer components {
   .heading-display {
     @apply font-display tracking-cinematic text-bone;
@@ -68,7 +83,8 @@ body::after {
     @apply font-mono text-xs tracking-wide2 uppercase text-gold;
   }
 
-  /* Gold underline that slides in on hover */
+  /* Gold underline that slides in from the left on hover and exits stage
+     right on leave. The transform-origin swap is what sells it. */
   .link-slide {
     position: relative;
   }
@@ -99,7 +115,10 @@ body::after {
   }
 }
 
-/* Scroll indicator line animation */
+/* The hero's "scroll down" indicator: a thin line that grows from the top,
+   then drains out the bottom, forever. Disabled under reduced motion —
+   a line pulsing for eternity is exactly the kind of thing that setting
+   exists for. */
 @keyframes scroll-pulse {
   0% { transform: scaleY(0); transform-origin: top; }
   45% { transform: scaleY(1); transform-origin: top; }
@@ -113,7 +132,9 @@ body::after {
   .scroll-line { animation: none; transform: none; }
 }
 
-/* Leaflet dark-theme polish */
+/* Leaflet dark-theme polish. Leaflet ships assuming a white page; without
+   this, the coverage map glows like a lightbox in a darkroom. The !importants
+   are regrettable but Leaflet's own specificity left us no diplomatic option. */
 .leaflet-container {
   background: #0a0a0a;
   font-family: Inter, system-ui, sans-serif;
