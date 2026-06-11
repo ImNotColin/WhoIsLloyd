@@ -1,3 +1,7 @@
+// portfolio.js — the showreel. Public read of the portfolio grid, plus
+// admin CRUD for uploading the real footage that replaces the seeded
+// placeholder clips.
+
 import { Router } from 'express';
 import fs from 'fs/promises';
 import { z } from 'zod';
@@ -11,10 +15,12 @@ const SERVICES = ['REAL_ESTATE', 'EVENTS', 'CONSTRUCTION', 'WEDDINGS'];
 
 const router = Router();
 
+/* ───── view helpers ───── */
+
 /** Filesystem path -> public URL (remote placeholder URLs pass through). */
 function toPublicUrl(p) {
   if (!p) return p;
-  if (/^https?:\/\//.test(p)) return p;
+  if (/^https?:\/\//.test(p)) return p; // seeded Pexels placeholder — already a URL
   return p.startsWith(STORAGE_PATH)
     ? `/storage${p.slice(STORAGE_PATH.length)}`
     : p;
@@ -28,7 +34,9 @@ function itemView(item) {
   };
 }
 
-// GET /api/portfolio — public
+/* ───── public ───── */
+
+// GET /api/portfolio
 router.get('/portfolio', async (_req, res, next) => {
   try {
     const items = await prisma.portfolioItem.findMany({
@@ -40,7 +48,7 @@ router.get('/portfolio', async (_req, res, next) => {
   }
 });
 
-// --- Admin ---
+/* ───── admin ───── */
 
 const uploadFields = portfolioUpload.fields([
   { name: 'thumbnail', maxCount: 1 },
@@ -48,6 +56,10 @@ const uploadFields = portfolioUpload.fields([
 ]);
 
 // POST /api/admin/portfolio
+// Multipart, so Multer must run before we can validate the text fields —
+// req.body is empty until the (potentially multi-gigabyte) upload finishes
+// parsing. That's why the zod check is inline here instead of using the
+// validate() middleware.
 router.post('/admin/portfolio', auth, requireAdmin, uploadFields, async (req, res, next) => {
   try {
     const schema = z.object({
@@ -67,6 +79,9 @@ router.post('/admin/portfolio', auth, requireAdmin, uploadFields, async (req, re
     }
     const { title, category, displayOrder, thumbnailUrl, videoUrl } = parsed.data;
 
+    // Uploaded file wins; remote URL is the fallback. One way or another,
+    // a portfolio item without both a thumbnail and a video is not a
+    // portfolio item.
     const thumbnailPath = req.files?.thumbnail?.[0]?.path || thumbnailUrl;
     const videoPath = req.files?.video?.[0]?.path || videoUrl;
     if (!thumbnailPath || !videoPath) {
@@ -82,7 +97,9 @@ router.post('/admin/portfolio', auth, requireAdmin, uploadFields, async (req, re
   }
 });
 
-// PATCH /api/admin/portfolio/:id
+// PATCH /api/admin/portfolio/:id — metadata only. Swapping the actual
+// media means deleting and re-uploading; nobody re-edits a 10GB file
+// in place.
 router.patch(
   '/admin/portfolio/:id',
   auth,
@@ -116,7 +133,8 @@ router.delete('/admin/portfolio/:id', auth, requireAdmin, async (req, res, next)
     if (!existing) return res.status(404).json({ error: 'Item not found' });
 
     await prisma.portfolioItem.delete({ where: { id } });
-    // Clean up local files (remote placeholder URLs are skipped)
+    // Reclaim the disk space — gigabytes at a time around here. Remote
+    // placeholder URLs are skipped; Pexels can keep their own files.
     for (const p of [existing.thumbnailPath, existing.videoPath]) {
       if (p && !/^https?:\/\//.test(p)) await fs.unlink(p).catch(() => {});
     }

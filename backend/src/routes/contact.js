@@ -1,3 +1,6 @@
+// contact.js — the public contact form. One endpoint, rate-limited, that
+// turns a website form into an email in Colin's inbox.
+
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
@@ -6,6 +9,8 @@ import { sendContactEmail, emailConfigured } from '../services/emailService.js';
 
 const router = Router();
 
+// 20 messages per 15 minutes per IP — roomy for humans, cramped for bots.
+// Without this, the contact form is a free SMTP relay with extra steps.
 const contactLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -24,6 +29,8 @@ const schema = z.object({
 // POST /api/contact
 router.post('/', contactLimiter, validate(schema), async (req, res, next) => {
   try {
+    // If Gmail credentials aren't configured, say so up front and hand out
+    // the direct contact info — better than silently eating the message.
     if (!emailConfigured()) {
       return res.status(503).json({
         error:

@@ -1,3 +1,6 @@
+// schema.prisma — the whole business in eight models: one pilot, his
+// clients, their bookings, and the footage that pays for the propellers.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,15 +10,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// One table for both the admin and clients, separated by role. The admin
+/// is seeded; clients are created by the admin, never by self-signup.
 model User {
   id                Int          @id @default(autoincrement())
-  email             String       @unique
-  password          String // bcrypt hashed
+  email             String       @unique // stored lowercased by the routes
+  password          String // bcrypt hash, 12 rounds — never plaintext, never logged
   name              String
   role              Role         @default(CLIENT)
-  projectLabel      String?
+  projectLabel      String? // e.g. "Smith Wedding — June" in the portal header
   notes             String?
-  mustResetPassword Boolean      @default(true)
+  mustResetPassword Boolean      @default(true) // temporary password still in effect
   createdAt         DateTime     @default(now())
   files             ClientFile[]
 }
@@ -25,6 +30,8 @@ enum Role {
   CLIENT
 }
 
+/// A booked shoot. No relation to User on purpose — booking is public and
+/// most bookers never get a portal account, so we keep contact info inline.
 model Booking {
   id          Int           @id @default(autoincrement())
   clientName  String
@@ -32,10 +39,10 @@ model Booking {
   phone       String
   service     ServiceType
   slot        SlotType
-  date        DateTime
+  date        DateTime // UTC midnight, meaning "this calendar day in Texas" (see dateUtils.js)
   notes       String
   status      BookingStatus @default(PENDING)
-  gcalEventId String?
+  gcalEventId String? // Google Calendar event id, if creation succeeded
   createdAt   DateTime      @default(now())
 }
 
@@ -46,11 +53,15 @@ enum ServiceType {
   WEDDINGS
 }
 
+/// Two slots a day, full stop. The drone has more batteries than Colin
+/// has daylight.
 enum SlotType {
   AM
   PM
 }
 
+/// CANCELLED rows are kept, not deleted — they release their slot but
+/// preserve the paper trail.
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -58,11 +69,15 @@ enum BookingStatus {
   CANCELLED
 }
 
+/// Admin-declared no-fly days: holidays, weather, deer season. Unique date
+/// keeps double-blocking idempotent.
 model BlockedDate {
   id   Int      @id @default(autoincrement())
   date DateTime @unique
 }
 
+/// Singleton row (id is always 1): which weekdays accept bookings.
+/// Defaults are weekends-only — the original day-job-friendly schedule.
 model AvailabilitySettings {
   id          Int     @id @default(1)
   mondayOn    Boolean @default(false)
@@ -74,16 +89,20 @@ model AvailabilitySettings {
   sundayOn    Boolean @default(true)
 }
 
+/// One clip on the public showreel. Paths are either local /storage files
+/// or remote placeholder URLs from the seed; routes handle both.
 model PortfolioItem {
   id            Int         @id @default(autoincrement())
   title         String
   category      ServiceType
   thumbnailPath String
   videoPath     String
-  displayOrder  Int         @default(0)
+  displayOrder  Int         @default(0) // lower numbers float to the top
   createdAt     DateTime    @default(now())
 }
 
+/// Kind words, hand-entered by the admin. `visible` hides a quote without
+/// deleting it.
 model Testimonial {
   id         Int         @id @default(autoincrement())
   clientName String
@@ -94,22 +113,28 @@ model Testimonial {
   createdAt  DateTime    @default(now())
 }
 
+/// A delivered file in a client's portal. fileSize is BigInt because drone
+/// deliverables blew past Int32's 2GB ceiling on roughly day one. Deleting
+/// the user cascades these rows (disk cleanup is the route's job).
 model ClientFile {
   id         Int      @id @default(autoincrement())
   userId     Int
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  filename   String
-  filePath   String
+  filename   String // original name, shown to the client
+  filePath   String // sanitized, randomized name on disk
   fileSize   BigInt
   uploadedAt DateTime @default(now())
 }
 
+/// Singleton row (id is always 1): public contact info plus two private
+/// fields. Defaults below ship the real business details so the site is
+/// presentable before anyone touches the admin panel.
 model SiteSettings {
   id                 Int     @id @default(1)
   phone              String  @default("(903) 520-9328")
   email              String  @default("DronesByColin@gmail.com")
   instagram          String  @default("@DronesByColin")
   businessHours      String  @default("By appointment — weekends preferred")
-  part107Path        String?
-  googleRefreshToken String? // Google Calendar OAuth2 refresh token (server-side only)
+  part107Path        String? // FAA Part 107 license image, set via admin upload
+  googleRefreshToken String? // Google Calendar OAuth2 refresh token — server-side only, never in any API response
 }

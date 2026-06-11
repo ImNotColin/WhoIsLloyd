@@ -1,3 +1,7 @@
+// testimonials.js — kind words from clients. Public read of the visible
+// ones; admin CRUD for all of them, including the `visible` switch that
+// quietly retires a quote without deleting it.
+
 import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../lib/prisma.js';
@@ -9,7 +13,10 @@ const SERVICES = ['REAL_ESTATE', 'EVENTS', 'CONSTRUCTION', 'WEDDINGS'];
 
 const router = Router();
 
-// GET /api/testimonials — public, visible only
+/* ───── public ───── */
+
+// GET /api/testimonials — visible only. The filter is the entire privacy
+// model here; the public never learns what's hidden.
 router.get('/testimonials', async (_req, res, next) => {
   try {
     const items = await prisma.testimonial.findMany({
@@ -22,7 +29,9 @@ router.get('/testimonials', async (_req, res, next) => {
   }
 });
 
-// GET /api/admin/testimonials — all, including hidden
+/* ───── admin ───── */
+
+// GET /api/admin/testimonials — all of them, hidden included.
 router.get('/admin/testimonials', auth, requireAdmin, async (_req, res, next) => {
   try {
     const items = await prisma.testimonial.findMany({ orderBy: { createdAt: 'desc' } });
@@ -36,6 +45,8 @@ const createSchema = z.object({
   clientName: z.string().trim().min(2).max(120),
   service: z.enum(SERVICES),
   quote: z.string().trim().min(10).max(2000),
+  // Stars are 1–5, defaulting to 5 — Colin enters these himself, and
+  // nobody transcribes their own three-star review.
   rating: z.coerce.number().int().min(1).max(5).default(5),
   visible: z.boolean().default(true),
 });
@@ -50,7 +61,8 @@ router.post('/admin/testimonials', auth, requireAdmin, validate(createSchema), a
   }
 });
 
-// PATCH /api/admin/testimonials/:id — update fields / toggle visibility
+// PATCH /api/admin/testimonials/:id — any subset of fields; flipping
+// `visible` is the usual reason to be here.
 router.patch(
   '/admin/testimonials/:id',
   auth,

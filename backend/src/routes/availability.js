@@ -1,3 +1,7 @@
+// availability.js — admin controls for when the drone flies: which weekdays
+// are bookable, plus one-off blocked dates for holidays, weather, and the
+// occasional weekend Colin defends for himself.
+
 import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../lib/prisma.js';
@@ -7,11 +11,15 @@ import validate from '../middleware/validate.js';
 import { isValidDateString, toUTCDate, dateToString } from '../utils/dateUtils.js';
 
 const router = Router();
-router.use(auth, requireAdmin);
+router.use(auth, requireAdmin); // whole router is admin-only — no exceptions below
+
+/* ───── weekday settings ───── */
 
 // GET /api/admin/availability
 router.get('/', async (_req, res, next) => {
   try {
+    // upsert-with-empty-update: fetch the singleton settings row, creating
+    // it with schema defaults (weekends on) the first time anyone asks.
     const [settings, blocked] = await Promise.all([
       prisma.availabilitySettings.upsert({
         where: { id: 1 },
@@ -29,6 +37,8 @@ router.get('/', async (_req, res, next) => {
   }
 });
 
+// All seven flags are required on update — partial day submissions are how
+// you end up mysteriously closed on Wednesdays.
 const daysSchema = z.object({
   mondayOn: z.boolean(),
   tuesdayOn: z.boolean(),
@@ -53,12 +63,16 @@ router.put('/', validate(daysSchema), async (req, res, next) => {
   }
 });
 
+/* ───── blocked dates ───── */
+
 // POST /api/admin/availability/block
 router.post(
   '/block',
   validate(z.object({ date: z.string().refine(isValidDateString, 'date must be YYYY-MM-DD') })),
   async (req, res, next) => {
     try {
+      // Upsert keeps this idempotent: blocking an already-blocked date is
+      // a shrug, not a unique-constraint error.
       const blocked = await prisma.blockedDate.upsert({
         where: { date: toUTCDate(req.body.date) },
         update: {},
@@ -77,6 +91,7 @@ router.delete('/block/:id', async (req, res, next) => {
     await prisma.blockedDate.delete({ where: { id: Number(req.params.id) } });
     res.json({ ok: true });
   } catch (err) {
+    // P2025 is Prisma for "record not found" — a clean 404, not a crash.
     if (err.code === 'P2025') return res.status(404).json({ error: 'Not found' });
     next(err);
   }

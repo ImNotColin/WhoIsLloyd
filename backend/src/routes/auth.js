@@ -1,3 +1,7 @@
+// auth.js — login, token refresh, password changes, and the Google Calendar
+// OAuth handshake. The most security-sensitive file in the repo, so the
+// jokes are kept to cruising altitude.
+
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -11,6 +15,10 @@ import { getAuthUrl, handleOAuthCallback } from '../services/calendarService.js'
 
 const router = Router();
 
+/* ───── helpers ───── */
+
+// 10 attempts per 15 minutes per IP. Generous enough for a forgotten
+// password, hostile enough for a dictionary.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -19,6 +27,10 @@ const authLimiter = rateLimit({
   message: { error: 'Too many attempts. Try again in 15 minutes.' },
 });
 
+// Two tokens, two secrets, two lifespans: a short-lived access token (~15m)
+// for actual requests and a long-lived refresh token (~7d) whose only job
+// is minting new access tokens. Losing one is an inconvenience, not a key
+// to the building.
 function signTokens(user) {
   const payload = { id: user.id, role: user.role };
   return {
@@ -31,6 +43,9 @@ function signTokens(user) {
   };
 }
 
+// The user object as the frontend is allowed to see it. Notably absent:
+// the password hash. Allowlist, not blocklist — new columns stay private
+// until someone decides otherwise.
 function publicUser(user) {
   return {
     id: user.id,
@@ -41,6 +56,8 @@ function publicUser(user) {
     mustResetPassword: user.mustResetPassword,
   };
 }
+
+/* ───── login & tokens ───── */
 
 router.post(
   '/login',
@@ -54,6 +71,8 @@ router.post(
       const user = await prisma.user.findUnique({
         where: { email: email.toLowerCase() },
       });
+      // Same 401 whether the email is unknown or the password is wrong —
+      // no free account enumeration. bcrypt.compare does the slow part.
       const ok = user && (await bcrypt.compare(password, user.password));
       if (!ok) return res.status(401).json({ error: 'Invalid email or password' });
 
@@ -75,6 +94,9 @@ router.post(
       } catch {
         return res.status(401).json({ error: 'Invalid refresh token' });
       }
+      // Re-fetch the user instead of trusting the 7-day-old payload: if
+      // Colin deleted the client account on Tuesday, their token stops
+      // working on Tuesday, not next week.
       const user = await prisma.user.findUnique({ where: { id: payload.id } });
       if (!user) return res.status(401).json({ error: 'Account no longer exists' });
 
@@ -84,6 +106,8 @@ router.post(
     }
   }
 );
+
+/* ───── password change ───── */
 
 router.post(
   '/change-password',
@@ -99,13 +123,18 @@ router.post(
       const user = await prisma.user.findUnique({ where: { id: req.user.id } });
       if (!user) return res.status(401).json({ error: 'Account not found' });
 
+      // A valid JWT is not enough to change a password — you have to know
+      // the current one. A borrowed laptop shouldn't be a full takeover.
       const ok = await bcrypt.compare(req.body.currentPassword, user.password);
       if (!ok) return res.status(401).json({ error: 'Current password is incorrect' });
 
       const updated = await prisma.user.update({
         where: { id: user.id },
         data: {
+          // bcrypt, 12 rounds — slow on purpose, like a pre-flight checklist.
           password: await bcrypt.hash(req.body.newPassword, 12),
+          // This change-password flow is also how clients clear their
+          // temporary-password flag, so lower it here.
           mustResetPassword: false,
         },
       });
@@ -116,8 +145,10 @@ router.post(
   }
 );
 
-// --- Google Calendar OAuth (admin connects Colin's calendar) ---
+/* ───── Google Calendar OAuth (admin connects Colin's calendar) ───── */
 
+// Step 1: hand the admin panel a Google consent URL. 503 if the OAuth env
+// vars were never set — that's a deployment problem, not a user problem.
 router.get('/google', auth, requireAdmin, (req, res) => {
   const url = getAuthUrl();
   if (!url) {
@@ -128,6 +159,11 @@ router.get('/google', auth, requireAdmin, (req, res) => {
   res.json({ url });
 });
 
+// Step 2: Google redirects back here. No auth middleware — Google isn't
+// carrying our JWT — and the code itself is single-use proof of consent.
+// We bounce back to the admin settings page with the outcome in the query
+// string; `no_refresh_token` means Google decided we'd consented before
+// and kept the refresh token to itself (revoke app access and retry).
 router.get('/google/callback', async (req, res, next) => {
   try {
     const { code } = req.query;

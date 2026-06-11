@@ -1,3 +1,7 @@
+// clients.js — admin-only client management: accounts, temporary passwords,
+// and delivering the footage. There is no self-signup anywhere on this
+// site; if you have a client account, Colin typed your name in himself.
+
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import fs from 'fs/promises';
@@ -9,7 +13,9 @@ import validate from '../middleware/validate.js';
 import { clientUpload } from '../middleware/upload.js';
 
 const router = Router();
-router.use(auth, requireAdmin);
+router.use(auth, requireAdmin); // everything below is admin-only
+
+/* ───── view helpers ───── */
 
 function clientView(user) {
   return {
@@ -28,10 +34,14 @@ function fileView(f) {
   return {
     id: f.id,
     filename: f.filename,
-    fileSize: f.fileSize.toString(), // BigInt isn't JSON-serializable
+    // BigInt because drone files outgrow Int32, stringified because
+    // JSON.stringify throws at the sight of a BigInt.
+    fileSize: f.fileSize.toString(),
     uploadedAt: f.uploadedAt,
   };
 }
+
+/* ───── account CRUD ───── */
 
 // GET /api/admin/clients
 router.get('/', async (_req, res, next) => {
@@ -55,10 +65,14 @@ const createSchema = z.object({
   notes: z.string().trim().max(5000).optional(),
 });
 
-// POST /api/admin/clients — the ONLY way client accounts are created
+// POST /api/admin/clients — the ONLY way client accounts come into
+// existence. Colin sets a temporary password and reads it to the client
+// over the phone; mustResetPassword makes sure it stays temporary.
 router.post('/', validate(createSchema), async (req, res, next) => {
   try {
     const { name, email, temporaryPassword, projectLabel, notes } = req.body;
+    // Emails are stored lowercased so "Client@" and "client@" can't become
+    // two accounts fighting over one inbox.
     const existing = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
@@ -69,7 +83,7 @@ router.post('/', validate(createSchema), async (req, res, next) => {
       data: {
         name,
         email: email.toLowerCase(),
-        password: await bcrypt.hash(temporaryPassword, 12),
+        password: await bcrypt.hash(temporaryPassword, 12), // slow by design
         role: 'CLIENT',
         projectLabel: projectLabel || null,
         notes: notes || null,
@@ -95,16 +109,22 @@ const updateSchema = z.object({
 router.patch('/:id', validate(updateSchema), async (req, res, next) => {
   try {
     const id = Number(req.params.id);
+    // Scoped to role CLIENT — the admin account is not editable through
+    // this route, even by the admin. Especially by the admin.
     const client = await prisma.user.findFirst({ where: { id, role: 'CLIENT' } });
     if (!client) return res.status(404).json({ error: 'Client not found' });
 
     const { newPassword, forcePasswordReset, email, ...rest } = req.body;
     const data = { ...rest };
     if (email) data.email = email.toLowerCase();
+    // An admin-set password is by definition temporary, so the reset flag
+    // goes up with it...
     if (newPassword) {
       data.password = await bcrypt.hash(newPassword, 12);
       data.mustResetPassword = true;
     }
+    // ...unless the request says otherwise explicitly. Order matters:
+    // forcePasswordReset wins over the newPassword default above.
     if (typeof forcePasswordReset === 'boolean') {
       data.mustResetPassword = forcePasswordReset;
     }
@@ -116,7 +136,8 @@ router.patch('/:id', validate(updateSchema), async (req, res, next) => {
   }
 });
 
-// DELETE /api/admin/clients/:id — removes account, DB file records, and files on disk
+// DELETE /api/admin/clients/:id — account, DB file records, and the files
+// on disk. The whole project, gone, in that order.
 router.delete('/:id', async (req, res, next) => {
   try {
     const id = Number(req.params.id);
@@ -127,6 +148,8 @@ router.delete('/:id', async (req, res, next) => {
     if (!client) return res.status(404).json({ error: 'Client not found' });
 
     await prisma.user.delete({ where: { id } }); // cascades ClientFile rows
+    // allSettled, not all: a file already missing from disk shouldn't turn
+    // a successful account deletion into a 500.
     await Promise.allSettled(client.files.map((f) => fs.unlink(f.filePath)));
     res.json({ ok: true });
   } catch (err) {
@@ -134,7 +157,10 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
-// POST /api/admin/clients/:id/files — upload delivery files to a client's portal
+/* ───── delivery files ───── */
+
+// POST /api/admin/clients/:id/files — upload deliverables into a client's
+// portal, up to 20 at a time, up to 10GB apiece. Plan your evening.
 router.post('/:id/files', clientUpload.array('files', 20), async (req, res, next) => {
   try {
     const id = Number(req.params.id);
@@ -142,6 +168,8 @@ router.post('/:id/files', clientUpload.array('files', 20), async (req, res, next
     if (!client) return res.status(404).json({ error: 'Client not found' });
     if (!req.files?.length) return res.status(400).json({ error: 'No files uploaded' });
 
+    // We keep the client's original filename for display; the sanitized
+    // randomized name lives in filePath where it can't hurt anyone.
     const created = await Promise.all(
       req.files.map((f) =>
         prisma.clientFile.create({
@@ -163,13 +191,15 @@ router.post('/:id/files', clientUpload.array('files', 20), async (req, res, next
 // DELETE /api/admin/clients/:id/files/:fileId
 router.delete('/:id/files/:fileId', async (req, res, next) => {
   try {
+    // Both ids in the where clause, so a fileId can't be plucked out from
+    // under a different client's account.
     const file = await prisma.clientFile.findFirst({
       where: { id: Number(req.params.fileId), userId: Number(req.params.id) },
     });
     if (!file) return res.status(404).json({ error: 'File not found' });
 
     await prisma.clientFile.delete({ where: { id: file.id } });
-    await fs.unlink(file.filePath).catch(() => {});
+    await fs.unlink(file.filePath).catch(() => {}); // disk copy may already be gone
     res.json({ ok: true });
   } catch (err) {
     next(err);
