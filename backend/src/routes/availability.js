@@ -8,7 +8,7 @@ import prisma from '../lib/prisma.js';
 import auth from '../middleware/auth.js';
 import requireAdmin from '../middleware/requireAdmin.js';
 import validate from '../middleware/validate.js';
-import { isValidDateString, toUTCDate, dateToString } from '../utils/dateUtils.js';
+import { isValidDateString, toUTCDate, dateToString } from '../utils/scheduling.js';
 
 const router = Router();
 router.use(auth, requireAdmin); // whole router is admin-only — no exceptions below

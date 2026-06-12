@@ -4,7 +4,7 @@
 
 import { google } from 'googleapis';
 import prisma from '../lib/prisma.js';
-import { slotToDateTimes } from '../utils/dateUtils.js';
+import { slotToDateTimes } from '../utils/scheduling.js';
 
 // Uppercase on purpose — these are the event titles Colin reads at a
 // glance on his phone in a parking lot.

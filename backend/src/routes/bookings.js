@@ -16,7 +16,7 @@ import {
   minBookableDate,
   toUTCDate,
   dateToString,
-} from '../utils/dateUtils.js';
+} from '../utils/scheduling.js';
 import {
   sendBookingConfirmation,
   sendBookingNotification,

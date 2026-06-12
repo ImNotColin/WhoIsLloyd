@@ -3,7 +3,7 @@
 // front of exactly one drone pilot? Yes.
 
 import nodemailer from 'nodemailer';
-import { SLOT_TIMES } from '../utils/dateUtils.js';
+import { SLOT_TIMES } from '../utils/scheduling.js';
 
 const SERVICE_LABELS = {
   REAL_ESTATE: 'Real Estate',

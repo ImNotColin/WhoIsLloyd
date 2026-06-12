@@ -1,4 +1,4 @@
-// dateUtils.js — all the date math, quarantined in one file so the time
+// scheduling.js — all the date math, quarantined in one file so the time
 // zone bugs at least know where to report.
 //
 // The treaty that keeps the peace:
