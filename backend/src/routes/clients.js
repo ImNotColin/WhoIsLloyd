@@ -15,9 +15,9 @@ import { clientUpload } from '../middleware/upload.js';
 const router = Router();
 router.use(auth, requireAdmin); // everything below is admin-only
 
-/* ───── view helpers ───── */
+/* ───── serializers ───── */
 
-function clientView(user) {
+function serializeClient(user) {
   return {
     id: user.id,
     name: user.name,
@@ -26,18 +26,18 @@ function clientView(user) {
     notes: user.notes,
     mustResetPassword: user.mustResetPassword,
     createdAt: user.createdAt,
-    files: user.files?.map(fileView),
+    files: user.files?.map(serializeFile),
   };
 }
 
-function fileView(f) {
+function serializeFile(file) {
   return {
-    id: f.id,
-    filename: f.filename,
+    id: file.id,
+    filename: file.filename,
     // BigInt because drone files outgrow Int32, stringified because
     // JSON.stringify throws at the sight of a BigInt.
-    fileSize: f.fileSize.toString(),
-    uploadedAt: f.uploadedAt,
+    fileSize: file.fileSize.toString(),
+    uploadedAt: file.uploadedAt,
   };
 }
 
@@ -51,7 +51,7 @@ router.get('/', async (_req, res, next) => {
       include: { files: { orderBy: { uploadedAt: 'desc' } } },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(clients.map(clientView));
+    res.json(clients.map(serializeClient));
   } catch (err) {
     next(err);
   }
@@ -90,7 +90,7 @@ router.post('/', validate(createSchema), async (req, res, next) => {
         mustResetPassword: true,
       },
     });
-    res.status(201).json(clientView(user));
+    res.status(201).json(serializeClient(user));
   } catch (err) {
     next(err);
   }
@@ -130,7 +130,7 @@ router.patch('/:id', validate(updateSchema), async (req, res, next) => {
     }
 
     const user = await prisma.user.update({ where: { id }, data: updates });
-    res.json(clientView(user));
+    res.json(serializeClient(user));
   } catch (err) {
     next(err);
   }
@@ -150,7 +150,7 @@ router.delete('/:id', async (req, res, next) => {
     await prisma.user.delete({ where: { id } }); // cascades ClientFile rows
     // allSettled, not all: a file already missing from disk shouldn't turn
     // a successful account deletion into a 500.
-    await Promise.allSettled(client.files.map((f) => fs.unlink(f.filePath)));
+    await Promise.allSettled(client.files.map((file) => fs.unlink(file.filePath)));
     res.json({ ok: true });
   } catch (err) {
     next(err);
@@ -171,18 +171,18 @@ router.post('/:id/files', clientUpload.array('files', 20), async (req, res, next
     // We keep the client's original filename for display; the sanitized
     // randomized name lives in filePath where it can't hurt anyone.
     const created = await Promise.all(
-      req.files.map((f) =>
+      req.files.map((file) =>
         prisma.clientFile.create({
           data: {
             userId: id,
-            filename: f.originalname,
-            filePath: f.path,
-            fileSize: BigInt(f.size),
+            filename: file.originalname,
+            filePath: file.path,
+            fileSize: BigInt(file.size),
           },
         })
       )
     );
-    res.status(201).json(created.map(fileView));
+    res.status(201).json(created.map(serializeFile));
   } catch (err) {
     next(err);
   }

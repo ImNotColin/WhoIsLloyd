@@ -16,16 +16,16 @@ const SERVICES = ['REAL_ESTATE', 'EVENTS', 'CONSTRUCTION', 'WEDDINGS'];
 const EMPTY = { title: '', category: 'REAL_ESTATE', displayOrder: 0 };
 
 export default function AdminPortfolio() {
-  const [items, setItems] = useState([]);
+  const [clips, setClips] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [thumbnail, setThumbnail] = useState(null);
   const [video, setVideo] = useState(null);
   const [uploading, setUploading] = useState(null);
   const [feedback, setFeedback] = useState(null);
 
-  const load = () => adminGetPortfolioItems().then(setItems).catch(() => {});
+  const refreshPortfolio = () => adminGetPortfolioItems().then(setClips).catch(() => {});
   useEffect(() => {
-    load();
+    refreshPortfolio();
   }, []);
 
   // Publish a new item. Both files are required before takeoff — a portfolio
@@ -56,7 +56,7 @@ export default function AdminPortfolio() {
       setThumbnail(null);
       setVideo(null);
       e.target.reset();
-      load();
+      refreshPortfolio();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     } finally {
@@ -69,7 +69,7 @@ export default function AdminPortfolio() {
   const reorder = async (item, displayOrder) => {
     try {
       await adminUpdatePortfolio(item.id, { displayOrder: Number(displayOrder) });
-      load();
+      refreshPortfolio();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -79,7 +79,7 @@ export default function AdminPortfolio() {
     if (!window.confirm(`Delete "${item.title}"?`)) return;
     try {
       await adminDeletePortfolio(item.id);
-      load();
+      refreshPortfolio();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -150,12 +150,12 @@ export default function AdminPortfolio() {
         <Feedback value={feedback} />
       </Card>
 
-      <Card title={`ALL ITEMS (${items.length})`}>
-        {items.length === 0 ? (
+      <Card title={`ALL ITEMS (${clips.length})`}>
+        {clips.length === 0 ? (
           <p className="text-muted text-sm">Nothing in the portfolio yet.</p>
         ) : (
           <ul className="divide-y divide-line">
-            {items.map((item) => (
+            {clips.map((item) => (
               <li key={item.id} className="py-4 flex flex-wrap items-center gap-4">
                 <img
                   src={item.thumbnailPath}

@@ -29,7 +29,7 @@ export default function AdminAvailability() {
   const [newDate, setNewDate] = useState('');
   const [feedback, setFeedback] = useState(null);
 
-  const load = () =>
+  const refreshAvailability = () =>
     adminGetAvailability()
       .then((data) => {
         setSettings(data.settings);
@@ -38,7 +38,7 @@ export default function AdminAvailability() {
       .catch(() => {});
 
   useEffect(() => {
-    load();
+    refreshAvailability();
   }, []);
 
   // Optimistic toggle: flip the checkbox immediately, then persist. If the
@@ -53,7 +53,7 @@ export default function AdminAvailability() {
       setFeedback({ ok: true, message: 'Availability saved' });
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
-      load();
+      refreshAvailability();
     }
   };
 
@@ -65,7 +65,7 @@ export default function AdminAvailability() {
       await adminBlockDate(newDate);
       setNewDate('');
       setFeedback({ ok: true, message: `${newDate} blocked` });
-      load();
+      refreshAvailability();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -74,7 +74,7 @@ export default function AdminAvailability() {
   const unblock = async (id) => {
     try {
       await adminUnblockDate(id);
-      load();
+      refreshAvailability();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }

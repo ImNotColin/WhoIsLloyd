@@ -45,7 +45,7 @@ export default function BookingPage() {
   // Touchdown. The confirmation screen replaces the wizard entirely.
   if (confirmation) {
     return (
-      <Shell>
+      <BookingShell>
         <div className="text-center py-20">
           <div className="text-gold text-6xl mb-8" aria-hidden="true">✓</div>
           <h1 className="heading-display text-5xl md:text-7xl mb-6">YOU&rsquo;RE BOOKED</h1>
@@ -60,12 +60,12 @@ export default function BookingPage() {
             <GoldButton>BACK TO SITE</GoldButton>
           </Link>
         </div>
-      </Shell>
+      </BookingShell>
     );
   }
 
   return (
-    <Shell>
+    <BookingShell>
       <p className="section-kicker mb-4">BOOKING</p>
       <h1 className="heading-display text-5xl md:text-7xl mb-10">BOOK YOUR SHOOT</h1>
 
@@ -89,7 +89,7 @@ export default function BookingPage() {
       </ol>
 
       {step === 0 && (
-        <StepWrap title="What are we shooting?">
+        <WizardStep title="What are we shooting?">
           <ServiceSelect
             value={service}
             onSelect={(v) => {
@@ -97,11 +97,11 @@ export default function BookingPage() {
               setStep(1);
             }}
           />
-        </StepWrap>
+        </WizardStep>
       )}
 
       {step === 1 && (
-        <StepWrap title="Morning or afternoon?" onBack={() => setStep(0)}>
+        <WizardStep title="Morning or afternoon?" onBack={() => setStep(0)}>
           <SlotPicker
             value={slot}
             onSelect={(v) => {
@@ -112,11 +112,11 @@ export default function BookingPage() {
               setStep(2);
             }}
           />
-        </StepWrap>
+        </WizardStep>
       )}
 
       {step === 2 && (
-        <StepWrap title="Pick your date" onBack={() => setStep(1)}>
+        <WizardStep title="Pick your date" onBack={() => setStep(1)}>
           <DatePicker
             slot={slot}
             value={date}
@@ -125,11 +125,11 @@ export default function BookingPage() {
               setStep(3);
             }}
           />
-        </StepWrap>
+        </WizardStep>
       )}
 
       {step === 3 && (
-        <StepWrap title="Tell us about the shoot" onBack={() => setStep(2)}>
+        <WizardStep title="Tell us about the shoot" onBack={() => setStep(2)}>
           <BookingForm
             service={service}
             slot={slot}
@@ -138,16 +138,16 @@ export default function BookingPage() {
             submitting={submitting}
             error={error}
           />
-        </StepWrap>
+        </WizardStep>
       )}
-    </Shell>
+    </BookingShell>
   );
 }
 
 // ---- Layout helpers ---------------------------------------------------------
 
 // Nav + footer chrome shared by the wizard and the confirmation screen.
-function Shell({ children }) {
+function BookingShell({ children }) {
   return (
     <>
       <Navigation />
@@ -159,7 +159,7 @@ function Shell({ children }) {
 
 // Step heading plus the optional BACK button. Step 0 gets no back button;
 // there is nothing before the beginning.
-function StepWrap({ title, onBack, children }) {
+function WizardStep({ title, onBack, children }) {
   return (
     <div>
       <div className="flex items-baseline justify-between mb-8">

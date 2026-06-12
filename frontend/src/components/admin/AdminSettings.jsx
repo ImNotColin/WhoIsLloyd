@@ -18,7 +18,7 @@ export default function AdminSettings() {
   const [feedback, setFeedback] = useState(null);
   const [searchParams] = useSearchParams();
 
-  const load = () =>
+  const refreshSettings = () =>
     adminGetSettings()
       .then((data) => {
         setSettings(data);
@@ -36,7 +36,7 @@ export default function AdminSettings() {
   // we'd already been introduced and skipped the consent screen — reconnecting
   // generally shakes one loose.
   useEffect(() => {
-    load();
+    refreshSettings();
     const cal = searchParams.get('calendar');
     if (cal === 'connected') setFeedback({ ok: true, message: 'Google Calendar connected' });
     if (cal === 'no_refresh_token')
@@ -54,7 +54,7 @@ export default function AdminSettings() {
     try {
       await adminUpdateSettings(form);
       setFeedback({ ok: true, message: 'Settings saved' });
-      load();
+      refreshSettings();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -66,7 +66,7 @@ export default function AdminSettings() {
     try {
       await adminUploadPart107(file);
       setFeedback({ ok: true, message: 'FAA Part 107 license image updated' });
-      load();
+      refreshSettings();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }

@@ -27,11 +27,11 @@ router.get('/me', async (req, res, next) => {
       projectLabel: user.projectLabel,
       notes: user.notes,
       mustResetPassword: user.mustResetPassword,
-      files: user.files.map((f) => ({
-        id: f.id,
-        filename: f.filename,
-        fileSize: f.fileSize.toString(), // BigInt → string; JSON refuses to discuss it
-        uploadedAt: f.uploadedAt,
+      files: user.files.map((file) => ({
+        id: file.id,
+        filename: file.filename,
+        fileSize: file.fileSize.toString(), // BigInt → string; JSON refuses to discuss it
+        uploadedAt: file.uploadedAt,
       })),
     });
   } catch (err) {

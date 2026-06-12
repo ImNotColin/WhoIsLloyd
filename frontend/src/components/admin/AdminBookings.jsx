@@ -16,9 +16,9 @@ export default function AdminBookings() {
   const [expanded, setExpanded] = useState(null);
   const [feedback, setFeedback] = useState(null);
 
-  const load = () => adminGetBookings().then(setBookings).catch(() => {});
+  const refreshBookings = () => adminGetBookings().then(setBookings).catch(() => {});
   useEffect(() => {
-    load();
+    refreshBookings();
   }, []);
 
   // Sort a copy, never the state. Status sort breaks ties by date so rows
@@ -35,7 +35,7 @@ export default function AdminBookings() {
     try {
       await adminUpdateBooking(id, status);
       setFeedback({ ok: true, message: `Booking #${id} → ${status}` });
-      load();
+      refreshBookings();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -49,7 +49,7 @@ export default function AdminBookings() {
       await adminDeleteBooking(id);
       setFeedback({ ok: true, message: `Booking #${id} deleted` });
       setExpanded(null);
-      load();
+      refreshBookings();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }

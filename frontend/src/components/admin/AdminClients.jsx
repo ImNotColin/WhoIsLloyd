@@ -35,9 +35,9 @@ export default function AdminClients() {
   const [uploading, setUploading] = useState(null); // { id, percent } — whose upload is airborne, and how far along
   const [feedback, setFeedback] = useState(null);
 
-  const load = () => adminGetClients().then(setClients).catch(() => {});
+  const refreshClients = () => adminGetClients().then(setClients).catch(() => {});
   useEffect(() => {
-    load();
+    refreshClients();
   }, []);
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
@@ -51,7 +51,7 @@ export default function AdminClients() {
         message: `Client created. Send them their temporary password: ${form.temporaryPassword}`,
       });
       setForm(EMPTY);
-      load();
+      refreshClients();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -69,7 +69,7 @@ export default function AdminClients() {
     try {
       await adminDeleteClient(client.id);
       setExpanded(null);
-      load();
+      refreshClients();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -83,7 +83,7 @@ export default function AdminClients() {
     try {
       await adminUpdateClient(client.id, { newPassword: pw, forcePasswordReset: true });
       setFeedback({ ok: true, message: `New temporary password for ${client.name}: ${pw}` });
-      load();
+      refreshClients();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -100,7 +100,7 @@ export default function AdminClients() {
         if (e.total) setUploading({ id: client.id, percent: Math.round((e.loaded / e.total) * 100) });
       });
       setFeedback({ ok: true, message: `${files.length} file(s) delivered to ${client.name}` });
-      load();
+      refreshClients();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     } finally {
@@ -112,7 +112,7 @@ export default function AdminClients() {
     if (!window.confirm(`Remove ${file.filename}?`)) return;
     try {
       await adminDeleteClientFile(clientId, file.id);
-      load();
+      refreshClients();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -171,43 +171,43 @@ export default function AdminClients() {
           <p className="text-muted text-sm">No client accounts yet.</p>
         ) : (
           <ul className="divide-y divide-line">
-            {clients.map((c) => (
-              <li key={c.id} className="py-4">
+            {clients.map((client) => (
+              <li key={client.id} className="py-4">
                 <button
                   className="w-full flex flex-wrap items-center gap-3 text-left"
-                  onClick={() => setExpanded(expanded === c.id ? null : c.id)}
-                  aria-expanded={expanded === c.id}
+                  onClick={() => setExpanded(expanded === client.id ? null : client.id)}
+                  aria-expanded={expanded === client.id}
                 >
                   <span className="flex-1">
-                    <span className="text-bone">{c.name}</span>
-                    <span className="font-mono text-xs text-muted ml-3">{c.email}</span>
+                    <span className="text-bone">{client.name}</span>
+                    <span className="font-mono text-xs text-muted ml-3">{client.email}</span>
                   </span>
-                  {c.projectLabel && (
-                    <span className="font-mono text-[10px] tracking-wide2 text-gold">{c.projectLabel}</span>
+                  {client.projectLabel && (
+                    <span className="font-mono text-[10px] tracking-wide2 text-gold">{client.projectLabel}</span>
                   )}
-                  <span className="font-mono text-[10px] text-muted">{c.files?.length || 0} FILES</span>
-                  {c.mustResetPassword && (
+                  <span className="font-mono text-[10px] text-muted">{client.files?.length || 0} FILES</span>
+                  {client.mustResetPassword && (
                     <span className="font-mono text-[10px] tracking-wide2 text-yellow-400 border border-yellow-900 px-2 py-0.5">
                       PW RESET PENDING
                     </span>
                   )}
                 </button>
 
-                {expanded === c.id && (
+                {expanded === client.id && (
                   <div className="mt-4 ml-2 pl-4 border-l border-gold/30 space-y-4">
-                    <EditClient client={c} onSaved={load} setFeedback={setFeedback} />
+                    <EditClient client={client} onSaved={refreshClients} setFeedback={setFeedback} />
 
                     <div>
                       <div className="label-dark">Delivered Files</div>
-                      {c.files?.length ? (
+                      {client.files?.length ? (
                         <ul className="divide-y divide-line border border-line mb-3">
-                          {c.files.map((f) => (
-                            <li key={f.id} className="flex items-center gap-3 px-4 py-2 text-sm">
-                              <span className="flex-1 break-all">{f.filename}</span>
+                          {client.files.map((file) => (
+                            <li key={file.id} className="flex items-center gap-3 px-4 py-2 text-sm">
+                              <span className="flex-1 break-all">{file.filename}</span>
                               <span className="font-mono text-[10px] text-muted">
-                                {formatBytes(f.fileSize)} · {formatDate(f.uploadedAt)}
+                                {formatBytes(file.fileSize)} · {formatDate(file.uploadedAt)}
                               </span>
-                              <Button danger onClick={() => removeFile(c.id, f)}>
+                              <Button danger onClick={() => removeFile(client.id, file)}>
                                 ✕
                               </Button>
                             </li>
@@ -218,21 +218,21 @@ export default function AdminClients() {
                       )}
                       <label className="inline-block">
                         <span className="font-mono text-xs tracking-wide2 uppercase px-4 py-2 border border-gold/50 text-gold hover:bg-gold hover:text-ink transition-all cursor-pointer">
-                          {uploading?.id === c.id ? `UPLOADING ${uploading.percent}%` : 'UPLOAD FILES'}
+                          {uploading?.id === client.id ? `UPLOADING ${uploading.percent}%` : 'UPLOAD FILES'}
                         </span>
                         <input
                           type="file"
                           multiple
                           className="hidden"
                           disabled={Boolean(uploading)}
-                          onChange={(e) => upload(c, Array.from(e.target.files))}
+                          onChange={(e) => upload(client, Array.from(e.target.files))}
                         />
                       </label>
                     </div>
 
                     <div className="flex flex-wrap gap-2 pt-2">
-                      <Button onClick={() => resetPassword(c)}>Reset Password</Button>
-                      <Button danger onClick={() => remove(c)}>
+                      <Button onClick={() => resetPassword(client)}>Reset Password</Button>
+                      <Button danger onClick={() => remove(client)}>
                         Delete Client
                       </Button>
                     </div>

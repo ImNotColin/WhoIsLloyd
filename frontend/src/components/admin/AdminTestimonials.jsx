@@ -16,13 +16,13 @@ const SERVICES = ['REAL_ESTATE', 'EVENTS', 'CONSTRUCTION', 'WEDDINGS'];
 const EMPTY = { clientName: '', service: 'REAL_ESTATE', quote: '', rating: 5, visible: true };
 
 export default function AdminTestimonials() {
-  const [items, setItems] = useState([]);
+  const [quotes, setQuotes] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [feedback, setFeedback] = useState(null);
 
-  const load = () => adminGetTestimonials().then(setItems).catch(() => {});
+  const refreshTestimonials = () => adminGetTestimonials().then(setQuotes).catch(() => {});
   useEffect(() => {
-    load();
+    refreshTestimonials();
   }, []);
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
@@ -34,7 +34,7 @@ export default function AdminTestimonials() {
       await adminCreateTestimonial({ ...form, rating: Number(form.rating) });
       setFeedback({ ok: true, message: 'Testimonial added' });
       setForm(EMPTY);
-      load();
+      refreshTestimonials();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -45,7 +45,7 @@ export default function AdminTestimonials() {
   const toggle = async (item) => {
     try {
       await adminUpdateTestimonial(item.id, { visible: !item.visible });
-      load();
+      refreshTestimonials();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -55,7 +55,7 @@ export default function AdminTestimonials() {
     if (!window.confirm(`Delete ${item.clientName}'s testimonial?`)) return;
     try {
       await adminDeleteTestimonial(item.id);
-      load();
+      refreshTestimonials();
     } catch (err) {
       setFeedback({ ok: false, message: apiError(err) });
     }
@@ -103,14 +103,14 @@ export default function AdminTestimonials() {
         <Feedback value={feedback} />
       </Card>
 
-      <Card title={`ALL TESTIMONIALS (${items.length})`}>
-        {items.length === 0 ? (
+      <Card title={`ALL TESTIMONIALS (${quotes.length})`}>
+        {quotes.length === 0 ? (
           <p className="text-muted text-sm">
             None yet — the public section stays hidden until the first visible testimonial.
           </p>
         ) : (
           <ul className="divide-y divide-line">
-            {items.map((item) => (
+            {quotes.map((item) => (
               <li key={item.id} className="py-4 flex flex-wrap items-start gap-4">
                 <div className="flex-1 min-w-[220px]">
                   <div className="flex items-center gap-3 mb-1">

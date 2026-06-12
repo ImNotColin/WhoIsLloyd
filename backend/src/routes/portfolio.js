@@ -18,15 +18,15 @@ const router = Router();
 /* ───── view helpers ───── */
 
 /** Filesystem path -> public URL (remote placeholder URLs pass through). */
-function toPublicUrl(p) {
-  if (!p) return p;
-  if (/^https?:\/\//.test(p)) return p; // seeded Pexels placeholder — already a URL
-  return p.startsWith(STORAGE_PATH)
-    ? `/storage${p.slice(STORAGE_PATH.length)}`
-    : p;
+function toPublicUrl(mediaPath) {
+  if (!mediaPath) return mediaPath;
+  if (/^https?:\/\//.test(mediaPath)) return mediaPath; // seeded Pexels placeholder — already a URL
+  return mediaPath.startsWith(STORAGE_PATH)
+    ? `/storage${mediaPath.slice(STORAGE_PATH.length)}`
+    : mediaPath;
 }
 
-function itemView(item) {
+function serializeItem(item) {
   return {
     ...item,
     thumbnailPath: toPublicUrl(item.thumbnailPath),
@@ -42,7 +42,7 @@ router.get('/portfolio', async (_req, res, next) => {
     const reel = await prisma.portfolioItem.findMany({
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
     });
-    res.json(reel.map(itemView));
+    res.json(reel.map(serializeItem));
   } catch (err) {
     next(err);
   }
@@ -91,7 +91,7 @@ router.post('/admin/portfolio', auth, requireAdmin, uploadFields, async (req, re
     const created = await prisma.portfolioItem.create({
       data: { title, category, displayOrder, thumbnailPath, videoPath },
     });
-    res.status(201).json(itemView(created));
+    res.status(201).json(serializeItem(created));
   } catch (err) {
     next(err);
   }
@@ -118,7 +118,7 @@ router.patch(
       if (!existing) return res.status(404).json({ error: 'Item not found' });
 
       const updated = await prisma.portfolioItem.update({ where: { id }, data: req.body });
-      res.json(itemView(updated));
+      res.json(serializeItem(updated));
     } catch (err) {
       next(err);
     }
@@ -135,8 +135,8 @@ router.delete('/admin/portfolio/:id', auth, requireAdmin, async (req, res, next)
     await prisma.portfolioItem.delete({ where: { id } });
     // Reclaim the disk space — gigabytes at a time around here. Remote
     // placeholder URLs are skipped; Pexels can keep their own files.
-    for (const p of [existing.thumbnailPath, existing.videoPath]) {
-      if (p && !/^https?:\/\//.test(p)) await fs.unlink(p).catch(() => {});
+    for (const mediaPath of [existing.thumbnailPath, existing.videoPath]) {
+      if (mediaPath && !/^https?:\/\//.test(mediaPath)) await fs.unlink(mediaPath).catch(() => {});
     }
     res.json({ ok: true });
   } catch (err) {

@@ -48,10 +48,10 @@ export function todayCT() {
 
 // Shape check, then a round-trip through Date to catch the impostors:
 // "2026-02-30" matches the regex but does not match February.
-export function isValidDateString(s) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
-  const roundTrip = new Date(`${s}T00:00:00Z`);
-  return !Number.isNaN(roundTrip.getTime()) && roundTrip.toISOString().startsWith(s);
+export function isValidDateString(candidate) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(candidate)) return false;
+  const roundTrip = new Date(`${candidate}T00:00:00Z`);
+  return !Number.isNaN(roundTrip.getTime()) && roundTrip.toISOString().startsWith(candidate);
 }
 
 /** "YYYY-MM-DD" -> Date at UTC midnight (canonical DB representation). */

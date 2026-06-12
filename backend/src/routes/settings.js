@@ -18,14 +18,14 @@ const router = Router();
 // The public shape of the settings row. googleRefreshToken is conspicuously
 // not in this list and must never be — this view goes out on an
 // unauthenticated endpoint.
-function settingsView(s) {
+function serializeSettings(row) {
   return {
-    phone: s.phone,
-    email: s.email,
-    instagram: s.instagram,
-    businessHours: s.businessHours,
-    part107Path: s.part107Path
-      ? `/storage${s.part107Path.slice(STORAGE_PATH.length)}`
+    phone: row.phone,
+    email: row.email,
+    instagram: row.instagram,
+    businessHours: row.businessHours,
+    part107Path: row.part107Path
+      ? `/storage${row.part107Path.slice(STORAGE_PATH.length)}`
       : null,
   };
 }
@@ -43,7 +43,7 @@ async function getSettings() {
 // demanding a login to display a phone number.
 router.get('/public', async (_req, res, next) => {
   try {
-    res.json(settingsView(await getSettings()));
+    res.json(serializeSettings(await getSettings()));
   } catch (err) {
     next(err);
   }
@@ -57,7 +57,7 @@ router.use(auth, requireAdmin);
 router.get('/', async (_req, res, next) => {
   try {
     const [settings, calendar] = await Promise.all([getSettings(), calendarStatus()]);
-    res.json({ ...settingsView(settings), calendar });
+    res.json({ ...serializeSettings(settings), calendar });
   } catch (err) {
     next(err);
   }
@@ -78,7 +78,7 @@ router.put('/', validate(updateSchema), async (req, res, next) => {
       where: { id: 1 },
       data: req.body,
     });
-    res.json(settingsView(settings));
+    res.json(serializeSettings(settings));
   } catch (err) {
     next(err);
   }
@@ -95,7 +95,7 @@ router.post('/part107', part107Upload.single('image'), async (req, res, next) =>
       where: { id: 1 },
       data: { part107Path: req.file.path },
     });
-    res.json(settingsView(settings));
+    res.json(serializeSettings(settings));
   } catch (err) {
     next(err);
   }
