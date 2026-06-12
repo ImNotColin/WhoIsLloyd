@@ -50,8 +50,8 @@ export function todayCT() {
 // "2026-02-30" matches the regex but does not match February.
 export function isValidDateString(s) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
-  const d = new Date(`${s}T00:00:00Z`);
-  return !Number.isNaN(d.getTime()) && d.toISOString().startsWith(s);
+  const roundTrip = new Date(`${s}T00:00:00Z`);
+  return !Number.isNaN(roundTrip.getTime()) && roundTrip.toISOString().startsWith(s);
 }
 
 /** "YYYY-MM-DD" -> Date at UTC midnight (canonical DB representation). */
@@ -68,9 +68,9 @@ export function dateToString(date) {
 // Date arithmetic on strings, via UTC, where days are reliably 24 hours.
 // setUTCDate handles month and year rollover; no DST cliff to fall off.
 export function addDays(dateStr, days) {
-  const d = toUTCDate(dateStr);
-  d.setUTCDate(d.getUTCDate() + days);
-  return dateToString(d);
+  const date = toUTCDate(dateStr);
+  date.setUTCDate(date.getUTCDate() + days);
+  return dateToString(date);
 }
 
 /* ───── booking rules ───── */

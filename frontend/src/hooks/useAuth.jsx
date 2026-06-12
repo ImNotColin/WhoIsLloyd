@@ -36,10 +36,10 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(
     async (email, password) => {
-      const data = await api.login(email, password);
-      storeTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
-      persistUser(data.user);
-      return data.user;
+      const session = await api.login(email, password);
+      storeTokens({ accessToken: session.accessToken, refreshToken: session.refreshToken });
+      persistUser(session.user);
+      return session.user;
     },
     [persistUser]
   );
@@ -51,9 +51,9 @@ export function AuthProvider({ children }) {
 
   const changePassword = useCallback(
     async (currentPassword, newPassword) => {
-      const data = await api.changePassword(currentPassword, newPassword);
-      persistUser(data.user);
-      return data.user;
+      const updated = await api.changePassword(currentPassword, newPassword);
+      persistUser(updated.user);
+      return updated.user;
     },
     [persistUser]
   );

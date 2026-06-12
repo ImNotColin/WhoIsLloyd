@@ -5,18 +5,18 @@
 /** Returns middleware that validates req.body against a zod schema. */
 export default function validate(schema) {
   return (req, res, next) => {
-    const result = schema.safeParse(req.body);
-    if (!result.success) {
+    const parsed = schema.safeParse(req.body);
+    if (!parsed.success) {
       // Flatten zod's issue tree into "field.path: message" strings the
       // frontend can show verbatim instead of guessing.
-      const issues = result.error.issues.map(
+      const issues = parsed.error.issues.map(
         (i) => `${i.path.join('.')}: ${i.message}`
       );
       return res.status(400).json({ error: 'Validation failed', issues });
     }
     // Replace the body with zod's output, not the raw input — downstream
     // code gets the post-trim, post-coercion data and nothing extra.
-    req.body = result.data;
+    req.body = parsed.data;
     next();
   };
 }

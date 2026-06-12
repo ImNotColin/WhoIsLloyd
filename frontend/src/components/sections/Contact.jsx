@@ -26,8 +26,8 @@ export default function Contact() {
     e.preventDefault();
     setStatus({ state: 'sending' });
     try {
-      const res = await sendContact(form);
-      setStatus({ state: 'sent', message: res.message });
+      const receipt = await sendContact(form);
+      setStatus({ state: 'sent', message: receipt.message });
       setForm(EMPTY);
     } catch (err) {
       setStatus({ state: 'error', message: apiError(err, 'Could not send — call us instead.') });

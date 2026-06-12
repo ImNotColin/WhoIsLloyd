@@ -39,10 +39,10 @@ function itemView(item) {
 // GET /api/portfolio
 router.get('/portfolio', async (_req, res, next) => {
   try {
-    const items = await prisma.portfolioItem.findMany({
+    const reel = await prisma.portfolioItem.findMany({
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
     });
-    res.json(items.map(itemView));
+    res.json(reel.map(itemView));
   } catch (err) {
     next(err);
   }
@@ -88,10 +88,10 @@ router.post('/admin/portfolio', auth, requireAdmin, uploadFields, async (req, re
       return res.status(400).json({ error: 'Thumbnail and video are both required' });
     }
 
-    const item = await prisma.portfolioItem.create({
+    const created = await prisma.portfolioItem.create({
       data: { title, category, displayOrder, thumbnailPath, videoPath },
     });
-    res.status(201).json(itemView(item));
+    res.status(201).json(itemView(created));
   } catch (err) {
     next(err);
   }
@@ -117,8 +117,8 @@ router.patch(
       const existing = await prisma.portfolioItem.findUnique({ where: { id } });
       if (!existing) return res.status(404).json({ error: 'Item not found' });
 
-      const item = await prisma.portfolioItem.update({ where: { id }, data: req.body });
-      res.json(itemView(item));
+      const updated = await prisma.portfolioItem.update({ where: { id }, data: req.body });
+      res.json(itemView(updated));
     } catch (err) {
       next(err);
     }

@@ -108,13 +108,13 @@ export const portalFileUrl = (fileId) => `/api/portal/files/${fileId}`;
 // the blob ourselves, mint a temporary object URL, click an invisible anchor,
 // and revoke the URL before anyone notices the payload changed hands.
 export const downloadPortalFile = async (fileId, filename) => {
-  const res = await api.get(`/portal/files/${fileId}`, { responseType: 'blob' });
-  const url = URL.createObjectURL(res.data);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  const fileResponse = await api.get(`/portal/files/${fileId}`, { responseType: 'blob' });
+  const objectUrl = URL.createObjectURL(fileResponse.data);
+  const downloadLink = document.createElement('a');
+  downloadLink.href = objectUrl;
+  downloadLink.download = filename;
+  downloadLink.click();
+  URL.revokeObjectURL(objectUrl);
 };
 
 // ---- Admin: bookings --------------------------------------------------------

@@ -115,21 +115,21 @@ router.patch('/:id', validate(updateSchema), async (req, res, next) => {
     if (!client) return res.status(404).json({ error: 'Client not found' });
 
     const { newPassword, forcePasswordReset, email, ...rest } = req.body;
-    const data = { ...rest };
-    if (email) data.email = email.toLowerCase();
+    const updates = { ...rest };
+    if (email) updates.email = email.toLowerCase();
     // An admin-set password is by definition temporary, so the reset flag
     // goes up with it...
     if (newPassword) {
-      data.password = await bcrypt.hash(newPassword, 12);
-      data.mustResetPassword = true;
+      updates.password = await bcrypt.hash(newPassword, 12);
+      updates.mustResetPassword = true;
     }
     // ...unless the request says otherwise explicitly. Order matters:
     // forcePasswordReset wins over the newPassword default above.
     if (typeof forcePasswordReset === 'boolean') {
-      data.mustResetPassword = forcePasswordReset;
+      updates.mustResetPassword = forcePasswordReset;
     }
 
-    const user = await prisma.user.update({ where: { id }, data });
+    const user = await prisma.user.update({ where: { id }, data: updates });
     res.json(clientView(user));
   } catch (err) {
     next(err);

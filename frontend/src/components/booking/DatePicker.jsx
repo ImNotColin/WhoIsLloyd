@@ -49,8 +49,8 @@ export default function DatePicker({ slot, value, onSelect }) {
   // Paging is clamped at the current month. The past is fully booked.
   const shiftMonth = (delta) => {
     const [y, m] = month.split('-').map(Number);
-    const d = new Date(y, m - 1 + delta, 1);
-    const next = monthKey(d);
+    const target = new Date(y, m - 1 + delta, 1);
+    const next = monthKey(target);
     if (next < currentMonth) return;
     setMonth(next);
   };

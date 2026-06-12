@@ -103,7 +103,7 @@ export async function createBookingEvent(booking) {
     // shoot actually is, not when UTC thinks it is.
     const dateStr = booking.date.toISOString().slice(0, 10);
     const { start, end } = slotToDateTimes(dateStr, booking.slot);
-    const res = await calendar.events.insert({
+    const inserted = await calendar.events.insert({
       calendarId: process.env.GOOGLE_CALENDAR_ID || 'primary',
       requestBody: {
         summary: `${SERVICE_LABELS[booking.service]} — ${booking.clientName}`,
@@ -112,7 +112,7 @@ export async function createBookingEvent(booking) {
         end,
       },
     });
-    return res.data.id || null;
+    return inserted.data.id || null;
   } catch (err) {
     console.error('[calendar] event creation failed:', err.message);
     return null;

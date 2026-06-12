@@ -19,11 +19,11 @@ const router = Router();
 // model here; the public never learns what's hidden.
 router.get('/testimonials', async (_req, res, next) => {
   try {
-    const items = await prisma.testimonial.findMany({
+    const testimonials = await prisma.testimonial.findMany({
       where: { visible: true },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(items);
+    res.json(testimonials);
   } catch (err) {
     next(err);
   }
@@ -34,8 +34,8 @@ router.get('/testimonials', async (_req, res, next) => {
 // GET /api/admin/testimonials — all of them, hidden included.
 router.get('/admin/testimonials', auth, requireAdmin, async (_req, res, next) => {
   try {
-    const items = await prisma.testimonial.findMany({ orderBy: { createdAt: 'desc' } });
-    res.json(items);
+    const testimonials = await prisma.testimonial.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(testimonials);
   } catch (err) {
     next(err);
   }
@@ -54,8 +54,8 @@ const createSchema = z.object({
 // POST /api/admin/testimonials
 router.post('/admin/testimonials', auth, requireAdmin, validate(createSchema), async (req, res, next) => {
   try {
-    const item = await prisma.testimonial.create({ data: req.body });
-    res.status(201).json(item);
+    const created = await prisma.testimonial.create({ data: req.body });
+    res.status(201).json(created);
   } catch (err) {
     next(err);
   }
@@ -74,8 +74,8 @@ router.patch(
       const existing = await prisma.testimonial.findUnique({ where: { id } });
       if (!existing) return res.status(404).json({ error: 'Testimonial not found' });
 
-      const item = await prisma.testimonial.update({ where: { id }, data: req.body });
-      res.json(item);
+      const updated = await prisma.testimonial.update({ where: { id }, data: req.body });
+      res.json(updated);
     } catch (err) {
       next(err);
     }

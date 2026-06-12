@@ -33,8 +33,8 @@ export default function BookingPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await createBooking({ ...form, service, slot, date });
-      setConfirmation(res.message);
+      const receipt = await createBooking({ ...form, service, slot, date });
+      setConfirmation(receipt.message);
     } catch (err) {
       setError(apiError(err, 'Booking failed — call us and we will get you scheduled.'));
     } finally {

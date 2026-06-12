@@ -26,8 +26,8 @@ export default function AdminDashboard() {
   const today = new Date().toISOString().slice(0, 10);
   const weekOut = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
   const upcoming = bookings.filter((b) => {
-    const d = formatDateOnly(b.date);
-    return d >= today && d <= weekOut && b.status !== 'CANCELLED';
+    const shootDate = formatDateOnly(b.date);
+    return shootDate >= today && shootDate <= weekOut && b.status !== 'CANCELLED';
   });
 
   // Headline numbers as [label, value] tuples; the Cards below do the styling.
