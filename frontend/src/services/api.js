@@ -176,6 +176,19 @@ export const adminUpdateTestimonial = (id, body) =>
 export const adminDeleteTestimonial = (id) =>
   api.delete(`/admin/testimonials/${id}`).then((r) => r.data);
 
+// ---- Bloopers ---------------------------------------------------------------
+// Public read + admin write. The page is hidden; the endpoint is not.
+export const getBloopers = () => api.get('/bloopers').then((r) => r.data);
+export const adminGetBloopers = () => api.get('/bloopers').then((r) => r.data);
+export const adminCreateBlooper = (form, onProgress) =>
+  api
+    .post('/admin/bloopers', form, { onUploadProgress: onProgress })
+    .then((r) => r.data);
+export const adminUpdateBlooper = (id, body) =>
+  api.patch(`/admin/bloopers/${id}`, body).then((r) => r.data);
+export const adminDeleteBlooper = (id) =>
+  api.delete(`/admin/bloopers/${id}`).then((r) => r.data);
+
 // ---- Admin: settings --------------------------------------------------------
 export const adminGetSettings = () => api.get('/admin/settings').then((r) => r.data);
 export const adminUpdateSettings = (body) =>

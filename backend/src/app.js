@@ -17,6 +17,7 @@ import portfolioRoutes from './routes/portfolio.js';
 import testimonialRoutes from './routes/testimonials.js';
 import contactRoutes from './routes/contact.js';
 import settingsRoutes from './routes/settings.js';
+import bloopersRoutes from './routes/bloopers.js';
 import { STORAGE_PATH } from './middleware/upload.js';
 
 const app = express();
@@ -58,6 +59,10 @@ app.use(
   '/storage/uploads/settings',
   express.static(path.join(STORAGE_PATH, 'uploads/settings'), { maxAge: '1d' })
 );
+app.use(
+  '/storage/uploads/bloopers',
+  express.static(path.join(STORAGE_PATH, 'uploads/bloopers'), { maxAge: '7d' })
+);
 // /storage/uploads/clients is deliberately absent. Client deliverables are a
 // no-fly zone for static serving — they only leave the building through the
 // authenticated portal/admin endpoints, which check who's asking.
@@ -71,6 +76,7 @@ app.use('/api/admin/clients', clientRoutes);
 app.use('/api/portal', portalRoutes);
 app.use('/api', portfolioRoutes); // /api/portfolio + /api/admin/portfolio
 app.use('/api', testimonialRoutes); // /api/testimonials + /api/admin/testimonials
+app.use('/api', bloopersRoutes);   // /api/bloopers + /api/admin/bloopers
 app.use('/api/contact', contactRoutes);
 app.use('/api/admin/settings', settingsRoutes);
 app.use('/api/admin/bookings', adminBookingRoutes);

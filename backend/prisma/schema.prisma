@@ -126,6 +126,15 @@ model ClientFile {
   uploadedAt DateTime @default(now())
 }
 
+/// The outtake reel. Publicly readable, admin-only writable, and only
+/// discoverable by those who know where to click.
+model Blooper {
+  id        Int      @id @default(autoincrement())
+  title     String
+  videoPath String
+  createdAt DateTime @default(now())
+}
+
 /// Singleton row (id is always 1): public contact info plus two private
 /// fields. Defaults below ship the real business details so the site is
 /// presentable before anyone touches the admin panel.

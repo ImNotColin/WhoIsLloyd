@@ -22,7 +22,9 @@ const AdminAvailability = lazy(() => import('./components/admin/AdminAvailabilit
 const AdminClients = lazy(() => import('./components/admin/AdminClients.jsx'));
 const AdminPortfolio = lazy(() => import('./components/admin/AdminPortfolio.jsx'));
 const AdminTestimonials = lazy(() => import('./components/admin/AdminTestimonials.jsx'));
+const AdminBloopers = lazy(() => import('./components/admin/AdminBloopers.jsx'));
 const AdminSettings = lazy(() => import('./components/admin/AdminSettings.jsx'));
+const BloopersPage = lazy(() => import('./pages/BloopersPage.jsx'));
 
 // ---- Guards -----------------------------------------------------------------
 
@@ -64,6 +66,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/booking" element={<BookingPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/bloopers" element={<BloopersPage />} />
 
         <Route path="/portal" element={<PortalRoot />} />
 
@@ -81,6 +84,7 @@ export default function App() {
           <Route path="clients" element={<AdminClients />} />
           <Route path="portfolio" element={<AdminPortfolio />} />
           <Route path="testimonials" element={<AdminTestimonials />} />
+          <Route path="bloopers" element={<AdminBloopers />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
 

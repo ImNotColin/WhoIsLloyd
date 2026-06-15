@@ -1,6 +1,9 @@
 // Navigation.jsx — the corner MENU trigger and the fullscreen overlay it
 // summons. The overlay sweeps down from above like weather; the links stagger
 // in once it has settled.
+//
+// The logo also has a secret: three clicks in under 1.5 seconds unlocks the
+// bloopers page for the current browser session. Refresh and it's gone again.
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -8,7 +11,7 @@ import { gsap, prefersReducedMotion } from '../../hooks/useScrollAnimation.js';
 import Logo from '../ui/Logo.jsx';
 
 // Flight plan for the menu. Anchor links scroll the homepage; `to` links leave it.
-const LINKS = [
+const BASE_LINKS = [
   { label: 'HOME', anchor: 'hero' },
   { label: 'SERVICES', anchor: 'services' },
   { label: 'THE WORK', anchor: 'work' },
@@ -17,14 +20,27 @@ const LINKS = [
   { label: 'CLIENT LOGIN', to: '/portal' },
 ];
 
+const BLOOPER_LINK = { label: 'BLOOPERS', to: '/bloopers' };
+
 export default function Navigation() {
   const [open, setOpen] = useState(false);
+  const [bloopersUnlocked, setBloopersUnlocked] = useState(
+    () => sessionStorage.getItem('bloopersUnlocked') === 'true'
+  );
   const overlayRef = useRef(null);
   const linksRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const close = useCallback(() => setOpen(false), []);
+
+  // The links shown in the menu — BLOOPERS appears only after the unlock.
+  const links = bloopersUnlocked ? [...BASE_LINKS, BLOOPER_LINK] : BASE_LINKS;
+
+  const handleSecretUnlock = () => {
+    sessionStorage.setItem('bloopersUnlocked', 'true');
+    setBloopersUnlocked(true);
+  };
 
   // Overlay choreography. Open: sweep down from -100% and stagger the links in
   // 70ms apart — six links arriving simultaneously reads as a crash, not a
@@ -85,7 +101,7 @@ export default function Navigation() {
           only the logo and MENU button actually catch anything. */}
       <header className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 md:px-10 py-5 pointer-events-none">
         <Link to="/" className="pointer-events-auto text-gold" aria-label="Drones by Colin — home">
-          <Logo size={42} />
+          <Logo size={42} onSecretUnlock={handleSecretUnlock} />
         </Link>
         <button
           onClick={() => setOpen(true)}
@@ -138,7 +154,7 @@ export default function Navigation() {
         </button>
 
         <ul ref={linksRef} className="relative flex flex-col items-center gap-2 md:gap-4">
-          {LINKS.map((link) => (
+          {links.map((link) => (
             <li key={link.label}>
               <button
                 onClick={() => goTo(link)}

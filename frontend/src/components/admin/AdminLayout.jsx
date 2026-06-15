@@ -13,6 +13,7 @@ const NAV = [
   { to: '/admin/clients', label: 'Clients' },
   { to: '/admin/portfolio', label: 'Portfolio' },
   { to: '/admin/testimonials', label: 'Testimonials' },
+  { to: '/admin/bloopers', label: 'Bloopers' },
   { to: '/admin/settings', label: 'Settings' },
 ];
 

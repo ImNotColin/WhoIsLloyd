@@ -84,6 +84,19 @@ export const clientUpload = multer({
   limits: { fileSize: MAX_FILE_SIZE },
 });
 
+// Blooper videos — stored separately from portfolio to keep the showreel
+// footage from mingling with the outtake reel. Video-only; no images here.
+export const blooperUpload = multer({
+  storage: storageFor(() => 'uploads/bloopers'),
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter(_req, file, cb) {
+    if (!VIDEO_TYPES.test(file.mimetype)) {
+      return cb(new Error('Blooper must be a video file'));
+    }
+    cb(null, true);
+  },
+});
+
 // The Part 107 license image. 50MB is generous for a photo of a card, and
 // if the FAA ever issues a 10GB license we have bigger problems.
 export const part107Upload = multer({

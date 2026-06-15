@@ -3,8 +3,32 @@
  * mark. Strokes inherit currentColor, so it wears whatever the parent is
  * wearing (almost always gold), and the whole thing scales off one `size`
  * prop because it is, in the end, just geometry.
+ *
+ * Three clicks within 1.5 seconds unlocks the bloopers page for the session.
+ * This is not documented anywhere on the site, which is sort of the point.
  */
-export default function Logo({ size = 56, className = '' }) {
+import { useRef } from 'react';
+
+export default function Logo({ size = 56, className = '', onSecretUnlock }) {
+  const clickCount = useRef(0);
+  const resetTimer = useRef(null);
+
+  const handleClick = () => {
+    if (resetTimer.current) clearTimeout(resetTimer.current);
+    clickCount.current += 1;
+
+    if (clickCount.current >= 3) {
+      clickCount.current = 0;
+      onSecretUnlock?.();
+    } else {
+      // If the next click doesn't arrive in 1.5 seconds, the count resets.
+      // Fast fingers only.
+      resetTimer.current = setTimeout(() => {
+        clickCount.current = 0;
+      }, 1500);
+    }
+  };
+
   return (
     <svg
       width={size}
@@ -13,6 +37,7 @@ export default function Logo({ size = 56, className = '' }) {
       className={className}
       aria-label="Drones by Colin — CS monogram"
       role="img"
+      onClick={handleClick}
     >
       <circle
         cx="50"
