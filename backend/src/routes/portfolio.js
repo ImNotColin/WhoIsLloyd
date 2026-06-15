@@ -97,27 +97,49 @@ router.post('/admin/portfolio', auth, requireAdmin, uploadFields, async (req, re
   }
 });
 
-// PATCH /api/admin/portfolio/:id — metadata only. Swapping the actual
-// media means deleting and re-uploading; nobody re-edits a 10GB file
-// in place.
+// PATCH /api/admin/portfolio/:id — title, category, displayOrder, and
+// optional thumbnail replacement. Videos are not replaceable in-place;
+// a 10GB file warrants a delete-and-re-upload, not an edit form.
+// Multer runs first so req.body is populated before we validate.
+const patchFields = portfolioUpload.fields([{ name: 'thumbnail', maxCount: 1 }]);
+
 router.patch(
   '/admin/portfolio/:id',
   auth,
   requireAdmin,
-  validate(
-    z.object({
-      title: z.string().trim().min(1).max(160).optional(),
-      category: z.enum(SERVICES).optional(),
-      displayOrder: z.coerce.number().int().optional(),
-    })
-  ),
+  patchFields,
   async (req, res, next) => {
     try {
       const id = Number(req.params.id);
       const existing = await prisma.portfolioItem.findUnique({ where: { id } });
       if (!existing) return res.status(404).json({ error: 'Item not found' });
 
-      const updated = await prisma.portfolioItem.update({ where: { id }, data: req.body });
+      const schema = z.object({
+        title: z.string().trim().min(1).max(160).optional(),
+        category: z.enum(SERVICES).optional(),
+        displayOrder: z.coerce.number().int().optional(),
+      });
+      const parsed = schema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          issues: parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+        });
+      }
+
+      const updateData = { ...parsed.data };
+
+      // If a new thumbnail was uploaded, swap the path and clean up the old
+      // file. Remote placeholder URLs (seeded Pexels clips) are left alone.
+      const newThumbnail = req.files?.thumbnail?.[0];
+      if (newThumbnail) {
+        updateData.thumbnailPath = newThumbnail.path;
+        if (existing.thumbnailPath && !/^https?:\/\//.test(existing.thumbnailPath)) {
+          await fs.unlink(existing.thumbnailPath).catch(() => {});
+        }
+      }
+
+      const updated = await prisma.portfolioItem.update({ where: { id }, data: updateData });
       res.json(serializeItem(updated));
     } catch (err) {
       next(err);

@@ -159,8 +159,10 @@ export const adminCreatePortfolio = (form, onProgress) =>
   api
     .post('/admin/portfolio', form, { onUploadProgress: onProgress })
     .then((r) => r.data);
-export const adminUpdatePortfolio = (id, body) =>
-  api.patch(`/admin/portfolio/${id}`, body).then((r) => r.data);
+export const adminUpdatePortfolio = (id, body, onProgress) =>
+  api
+    .patch(`/admin/portfolio/${id}`, body, { onUploadProgress: onProgress })
+    .then((r) => r.data);
 export const adminDeletePortfolio = (id) =>
   api.delete(`/admin/portfolio/${id}`).then((r) => r.data);
 
