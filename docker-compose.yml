@@ -1,0 +1,53 @@
+# docker-compose.yml — the supporting cast: PostgreSQL for the app and a
+# self-hosted Umami analytics stack. Optional but recommended. The Express
+# API itself runs under PM2 on the host (see README) — one less container
+# to wonder about at 2am.
+services:
+  # The app database. Bound to 127.0.0.1 so only the host can reach it;
+  # Postgres on the open internet is a hobby for other people.
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dronesbycolin
+      POSTGRES_USER: dbc
+      # ${VAR:?msg} makes compose fail loudly if the password isn't set,
+      # instead of cheerfully booting a database with no password.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:5432:5432'
+
+  # Umami gets its own Postgres. Sharing one instance saves a few hundred
+  # MB of RAM and costs you an evening the first time their migrations
+  # disagree. Not published on any port — only Umami talks to it.
+  umami-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${UMAMI_DB_PASSWORD:?set UMAMI_DB_PASSWORD in .env}
+    volumes:
+      - umamidb:/var/lib/postgresql/data
+
+  # Self-hosted, cookie-free analytics. Tells Colin which portfolio clips
+  # people actually watch, without handing the visitor list to anyone.
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    restart: unless-stopped
+    depends_on:
+      - umami-db
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD}@umami-db:5432/umami
+      DATABASE_TYPE: postgresql
+      APP_SECRET: ${UMAMI_APP_SECRET:?set UMAMI_APP_SECRET in .env}
+    ports:
+      - '127.0.0.1:3100:3000' # localhost only; exposed via nginx at analytics.dronesbycolin.com
+
+# Named volumes — both databases survive `docker compose down`, which is
+# the entire point of having them.
+volumes:
+  pgdata:
+  umamidb:

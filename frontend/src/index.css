@@ -1,0 +1,148 @@
+/* index.css — global styles for the dark, gold, faintly grainy aesthetic.
+   Tailwind handles the layout; everything below is the stuff Tailwind
+   can't express politely: pseudo-elements, scrollbars, and third-party CSS. */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens. These shadow the Tailwind palette in tailwind.config.js —
+   change a color in one place and you owe the other place a visit. */
+:root {
+  --color-black: #0a0a0a;
+  --color-surface: #111111;
+  --color-border: #1e1e1e;
+  --color-gold: #c9a84c;
+  --color-gold-dim: #8a6f2e;
+  --color-white: #f0ede8;
+  --color-gray: #6b6b6b;
+  --color-overlay: rgba(0, 0, 0, 0.85);
+}
+
+/* Smooth anchor scrolling — and the off switch for anyone who asked the OS
+   for less motion. They asked once; we don't make them ask per-site. */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  @apply bg-ink text-bone font-body antialiased;
+  overflow-x: hidden;
+}
+
+/* The film grain. One fixed pseudo-element on body, opacity 0.05 — enough to
+   feel cinematic, not enough to look like a broken TV. The SVG turbulence
+   filter is inlined as a data URI, so the texture costs zero network requests
+   and sits at z-index 9999, above everything, touching nothing
+   (pointer-events: none). */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Even highlighted text is on brand. */
+::selection {
+  background: var(--color-gold);
+  color: var(--color-black);
+}
+
+/* Custom scrollbar — WebKit only. Firefox users get the stock one and,
+   statistically, do not mind. */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-black);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-dim);
+}
+
+/* Reusable component classes — the typographic house style. */
+@layer components {
+  .heading-display {
+    @apply font-display tracking-cinematic text-bone;
+  }
+
+  .section-kicker {
+    @apply font-mono text-xs tracking-wide2 uppercase text-gold;
+  }
+
+  /* Gold underline that slides in from the left on hover and exits stage
+     right on leave. The transform-origin swap is what sells it. */
+  .link-slide {
+    position: relative;
+  }
+  .link-slide::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    height: 1px;
+    width: 100%;
+    background: var(--color-gold);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .link-slide:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  .input-dark {
+    @apply w-full bg-surface border border-line rounded px-4 py-3 text-bone placeholder-muted
+      focus:outline-none focus:border-gold transition-colors;
+  }
+
+  .label-dark {
+    @apply block font-mono text-xs tracking-wide2 uppercase text-muted mb-2;
+  }
+}
+
+/* The hero's "scroll down" indicator: a thin line that grows from the top,
+   then drains out the bottom, forever. Disabled under reduced motion —
+   a line pulsing for eternity is exactly the kind of thing that setting
+   exists for. */
+@keyframes scroll-pulse {
+  0% { transform: scaleY(0); transform-origin: top; }
+  45% { transform: scaleY(1); transform-origin: top; }
+  55% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+.scroll-line {
+  animation: scroll-pulse 2.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-line { animation: none; transform: none; }
+}
+
+/* Leaflet dark-theme polish. Leaflet ships assuming a white page; without
+   this, the coverage map glows like a lightbox in a darkroom. The !importants
+   are regrettable but Leaflet's own specificity left us no diplomatic option. */
+.leaflet-container {
+  background: #0a0a0a;
+  font-family: Inter, system-ui, sans-serif;
+}
+.leaflet-control-attribution {
+  background: rgba(10, 10, 10, 0.8) !important;
+  color: #6b6b6b !important;
+}
+.leaflet-control-attribution a {
+  color: #8a6f2e !important;
+}
